@@ -35,8 +35,9 @@ void setup() {
   paddleLePosY = height/2-paddleH/2;
   paddleRiPosY = height/2-paddleH/2;
 
-  font = loadFont("Unibody8-Regular-8.vlw"); 
+  font = loadFont("Monospaced-48.vlw"); 
   textFont(font);
+  textSize(8);
 }
 
 void draw() {
