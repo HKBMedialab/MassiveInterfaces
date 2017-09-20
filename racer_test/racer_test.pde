@@ -65,25 +65,18 @@ void draw() {
     rect(width/2, middledashpositions[i], 10, middledashheight);
   }
 
- //draw donkey
+  //draw donkey
   for (int i=0; i<donkeypositions.length; i++ ) {
     fill(200);
     noStroke();
     rect(donkeypositions[i].x, donkeypositions[i].y, donkeywidth, donkeyheight);
   }
 
-
-  fill(255, 0, 0);
   //car
+  fill(255, 0, 0);
   rect(carpos.x, carpos.y, 15, 25);
 
-
-
-
-
-
   hittest();
-
 
   if (!pause) {
     //move background
