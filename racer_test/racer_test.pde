@@ -3,7 +3,7 @@ int steeringamt=15;
 
 float[] backgroundpositions = new float[20];
 int backgroundrectheight=80;
-int speed=3;
+float speed=3;
 
 //road
 float[] middledashpositions = new float[20];
@@ -22,8 +22,7 @@ boolean pause=false;
 
 void setup() {
   size(500, 500);
-  carpos=new PVector(width/2, height/2);
-
+  carpos=new PVector(width/2, height-100);
   backgroundrectheight=height/backgroundpositions.length;
   for (int i=0; i<backgroundpositions.length; i++ ) {
     backgroundpositions[i]=backgroundrectheight*i;
@@ -100,12 +99,14 @@ void draw() {
       }
     }
   }
+  
+  //speed+=0.1;
 }
 
 
 void hittest() {
   for (int i=0; i<donkeypositions.length; i++ ) {
-    if (carpos.x>donkeypositions[i].x && carpos.x<donkeypositions[i].x+donkeywidth && carpos.y>donkeypositions[i].y &&carpos.y<donkeypositions[i].y+donkeyheight) {
+    if (carpos.x+donkeywidth>donkeypositions[i].x && carpos.x<donkeypositions[i].x+donkeywidth && carpos.y>donkeypositions[i].y &&carpos.y<donkeypositions[i].y+donkeyheight) {
       pause=true;
     }
   }
