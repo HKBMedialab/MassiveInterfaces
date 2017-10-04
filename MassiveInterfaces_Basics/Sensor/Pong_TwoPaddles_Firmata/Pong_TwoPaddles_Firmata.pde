@@ -33,11 +33,15 @@ color backgroundcolor=color(200, 200, 200);
 
 
 PFont font;
-int score=0;
+int scoreLeft=0;
+int scoreRight=0;
 int padding=30;
 
 
 boolean bUseArduino=false;
+// sensor min/max to map 
+int minVal=0;
+int maxVal=1023;
 
 
 // Arduino Firmata
@@ -48,7 +52,7 @@ Arduino arduino;
 
 // Funktionen: Wiederverwendbare Programmblöcke
 void setup() { 
-  size(500, 500);
+  size(700, 500);
   paddlePosX=width-paddleWidth-10;
   paddleLeftPosX=10;
 
@@ -85,7 +89,7 @@ void setup() {
 // Funktionen: Drawloop. wird x-mal pro Sekunde wiederholt. 
 void draw() {
   //revert backgroundcolor to grey
-  backgroundcolor=color(200);
+  backgroundcolor=color(0);
 
   // Update stuff
   if (bUseArduino) {
@@ -95,8 +99,6 @@ void draw() {
   hittest();
 
 
-
-
   //Draw stuff
   // fill background with red or grey
   background(backgroundcolor);
@@ -104,16 +106,14 @@ void draw() {
   rect(paddlePosX, paddlePosY, paddleWidth, paddleHeight);
   rect(paddleLeftPosX, paddleLeftPosY, paddleWidth, paddleHeight);
 
-
-
   //ball
   ellipse(posX, posY, diameter, diameter);
-
 
   // score
   fill(255);
   textAlign(RIGHT);
-  text(score, padding, padding);
+  text(scoreLeft, padding, padding);
+  text(scoreRight, width-padding, padding);
 }
 
 
@@ -124,22 +124,23 @@ void move() {
 }
 
 void hittest() {
-  //bounce from right paddle
   if (posX+radius>=paddlePosX && posY-radius>paddlePosY && posY-radius<paddlePosY+paddleHeight) {
-    speedX=speedX*-1;
+    speedX=speedX*-1; // right paddle
   } else if (posX-radius<=paddleLeftPosX+paddleWidth && posY-radius>paddleLeftPosY && posY+radius<paddleLeftPosY+paddleHeight) {
-    speedX=speedX*-1;
+    speedX=speedX*-1; // left paddle
   } else if (posX>=paddlePosX) {
+    //left score
+    scoreLeft++;
     backgroundcolor=color(255, 0, 0);
     reset();
-  } else if (posX<paddleLeftPosY+paddleWidth) {
-    backgroundcolor=color(255, 0, 0);
-
+  } else if (posX<paddleLeftPosX+paddleWidth) {
+    //right score
+    scoreRight++;
+    backgroundcolor=color(0, 255, 0);
     reset();
   }
 
-  //normal bounce
-  //if (posX+radius>width || posX-radius<0)speedX=speedX*-1;
+  //top / down bounce
   if (posY+radius>height || posY-radius<0)speedY=speedY*-1;
 }
 
@@ -152,26 +153,22 @@ void reset() {
   posY=height/2;
   speedX=random(2, 5);
   speedY=random(2, 5);
-
-  speedX=random(0, 1);
-  speedY=random(0, 1);
- // score+=1;
+  // score+=1;
 }
 
 void restart() {
   reset();
-  score=0;
+  scoreLeft=0;
+  scoreRight=0;
 }
 
-
 void paddlePos() {
-
-  paddlePosY= map(arduino.analogRead(1), 100, 800, -paddleHeight, height);
-  println(arduino.analogRead(1)+" "+paddlePosY);
+  //map incoming values to height
+  paddlePosY= map(arduino.analogRead(1), minVal, maxVal, -paddleHeight, height);
+  paddleLeftPosY= map(arduino.analogRead(0), minVal, maxVal, -paddleHeight, height);
 }
 
 void keyPressed() {
-  println(key);
   if (keyCode==UP) {
     //move up;
     paddlePosY-=moveAmmount;
@@ -180,18 +177,8 @@ void keyPressed() {
     //move down;
     paddlePosY+=moveAmmount;
   }
-  if (keyCode==LEFT) {
-    //move left;
-    // paddlePosX-=moveAmmount;
-  }
-  if (keyCode==RIGHT) {
-    //move right;
-    //paddlePosX+=moveAmmount;
-  }
-
 
   if (key=='w') {
-
     //move up;
     paddleLeftPosY-=moveAmmount;
   }
