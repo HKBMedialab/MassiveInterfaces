@@ -1,3 +1,30 @@
+/*
+HKB Massive Interfaces Graphplotter
+ Created by Michael Flueckiger
+ 
+ Diese Plotterklasse kann gebraucht werden um z.B Sensordaten zu visualisieren. 
+ Einfach das File in den betreffenden Projektordner kopieren.
+
+ Variable deklarieren:
+ Plotter meinPlotter;
+ 
+ Variable instanzieren, z.B in setup():
+ meinPlotter=new Plotter();
+ 
+ (Sensor-) daten zum Plott hinzufügen, z.B in draw():
+ float sensordata = arduino.analogRead(0);
+ meinPlotter.addValue(sensordata);
+ 
+ Den Graph zeichnen:
+ meinPlotter.plott();
+ 
+ Alternative, um die Höhe der Kurve besser kontrollieren zu können:
+ meinPlotter.plott(0, 1023, 0, plottHeight);  (minimaler Input, maximaler Input, minimaler Output, maximaler Output)
+ -> Der Sensor wird einen Wert zwischen 0 und 1023 liefern. minimaler Output, maximaler Output geben dabei an, wie hoch die Kurve gezeichnet werden soll
+ 
+ */
+
+
 class Plotter {
 
   FloatList values;
@@ -63,8 +90,6 @@ class Plotter {
   void removeValue(int _index) {
     values.remove(_index);
   }
-
-
 
   // HELPER
   void setStretch(int _stretch) {

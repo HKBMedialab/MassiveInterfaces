@@ -5,17 +5,21 @@ Plotter plotterA2;
 Plotter plotterA3;
 
 // style
+// Höhe der Kurven
 float pH=100;
 
-
+// Arduino Libraries einbinden
+// Wir nutzen die standartFirmata Library
 import processing.serial.*;
 import cc.arduino.*;
 
+// Variable, um den Arduino zu adressieren.
 Arduino arduino;
 
-
 void setup() {
+
   size(1000, 500);
+  // plotter instanzieren
   plotterA0=new Plotter();
   plotterA1=new Plotter();
   plotterA2=new Plotter();
@@ -23,6 +27,8 @@ void setup() {
 
   frameRate(30);
   colorMode(HSB);
+
+  //Retina Screen  
   pixelDensity(2);
 
 
@@ -46,9 +52,9 @@ void setup() {
 
 void draw() {
   background(200);
-  
+
   float val0=arduino.analogRead(0);
-  
+
   plotterA0.addValue(val0);
   plotterA0.update();
 
@@ -64,13 +70,16 @@ void draw() {
   plotterA3.addValue(val3);
   plotterA3.update();
 
-println(val0+" "+val1+" "+val2+" "+val3);
+  // Die Sensorwerte in der Konsole ausgeben
+  println(val0+" "+val1+" "+val2+" "+val3);
 
+  // zeichnen:
   pushMatrix();
   translate(0, 0);
   stroke(0, 255, 255);
   plotterA0.plott(0, 1023, 0, pH);
 
+  // verschieben der Kurve, damit mehrere untereinander gezeichnet werden können
   translate(0, pH);
   stroke(80, 255, 255);
   plotterA1.plott(0, 1023, 0, pH);
