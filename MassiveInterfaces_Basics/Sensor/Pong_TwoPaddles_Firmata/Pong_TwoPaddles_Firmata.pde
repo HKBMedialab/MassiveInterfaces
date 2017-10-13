@@ -5,8 +5,6 @@ HKB Massive Interfaces Basics
  */
 
 
-
-
 //paddle
 float paddleWidth=10;
 float paddleHeight=200;
@@ -17,7 +15,7 @@ float paddlePosY=0;
 float paddleLeftPosX=0;
 float paddleLeftPosY=0;
 
-
+// paddle move speed. only relevat to non-sensoric input
 float moveAmmount=20;
 
 //ball
@@ -28,16 +26,15 @@ float speedY=3;
 int diameter=20;
 int radius=diameter/2;
 
-
 color backgroundcolor=color(200, 200, 200);
 
-
+// Score
 PFont font;
 int scoreLeft=0;
 int scoreRight=0;
 int padding=30;
 
-
+// Arduino 
 boolean bUseArduino=false;
 // sensor min/max to map 
 int minVal=0;
@@ -145,15 +142,11 @@ void hittest() {
 }
 
 
-
-
-
 void reset() {
   posX=width/2;
   posY=height/2;
   speedX=random(2, 5);
   speedY=random(2, 5);
-  // score+=1;
 }
 
 void restart() {
@@ -162,6 +155,7 @@ void restart() {
   scoreRight=0;
 }
 
+// read out arduino values and update paddle positions
 void paddlePos() {
   //map incoming values to height
   paddlePosY= map(arduino.analogRead(1), minVal, maxVal, -paddleHeight, height);
@@ -177,7 +171,6 @@ void keyPressed() {
     //move down;
     paddlePosY+=moveAmmount;
   }
-
   if (key=='w') {
     //move up;
     paddleLeftPosY-=moveAmmount;

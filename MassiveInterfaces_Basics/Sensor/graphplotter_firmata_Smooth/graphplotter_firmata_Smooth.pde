@@ -1,5 +1,6 @@
 // Plotter Vars
 Plotter plotterA0; 
+Plotter plotterA1;
 
 
 // Vars to store sensordata + smooth out incoming values;
@@ -26,6 +27,7 @@ void setup() {
   size(1000, 500);
   // plotter instanzieren
   plotterA0=new Plotter();
+  plotterA1=new Plotter();
 
   frameRate(30);
   colorMode(HSB);
@@ -41,11 +43,11 @@ void setup() {
   // Modify this line, by changing the "0" to the index of the serial
   // port corresponding to your Arduino board (as it appears in the list
   // printed by the line above).
-  arduino = new Arduino(this, Arduino.list()[3], 57600);
+  //arduino = new Arduino(this, Arduino.list()[3], 57600);
 
   // Alternatively, use the name of the serial port corresponding to your
   // Arduino (in double-quotes), as in the following line.
-  //arduino = new Arduino(this, "/dev/tty.usbmodem621", 57600);
+  arduino = new Arduino(this, "/dev/tty.usbmodem1411", 57600);
 
   // Set the Arduino digital pins as inputs.
   for (int i = 0; i <= 13; i++)
@@ -56,17 +58,25 @@ void draw() {
   background(200);
 
 // smooth out incoming data. Interpolate between old val and new val
-  //float val0=arduino.analogRead(0);
-  float val0=random(0,1023);
+  float val0=arduino.analogRead(0);
+ // float val0=random(0,1023);
+
   analogVal0 = lerp(analogVal0, val0, smooth);
   plotterA0.addValue(analogVal0);
   plotterA0.update();
 
+  plotterA1.addValue(val0);
+  plotterA1.update();
 
   // zeichnen:
   pushMatrix();
   translate(0, 0);
   stroke(0, 255, 255);
   plotterA0.plott(0, 1023, 0, pH);
+    // verschieben der Kurve, damit mehrere untereinander gezeichnet werden können
+  translate(0, pH);
+  stroke(80, 255, 255);
+  plotterA1.plott(0, 1023, 0, pH);
+  
   popMatrix();
 }
