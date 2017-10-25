@@ -14,23 +14,21 @@ int [] mysensors= new int[2];
 
 
 void setup() {
-  size(1600, 1000);
+  //size(1600, 1000);
   frameRate(30);
-  //fullScreen(FX2D);
+  fullScreen();
 
   player=new Player();
 
   //System 1
   PVector center =new PVector(width/2+200, height/2);
-  GravityField planet=new GravityField(200, 800, 0.05, center, color(200, 0, 0));
+  GravityField planet=new GravityField(200, 800, 0.09, center, color(200, 0, 0));
   fields.add(planet);
 
   PVector planetpos = center.copy();
   PVector planetdistance = new PVector(400, 0);
-
   planetpos.add(planetdistance);
-
-  GravityField moon=new GravityField(100, 400, 0.05, planetpos, color(255, 100, 0), true, 0.007, center);
+  GravityField moon=new GravityField(100, 400, 0.09, planetpos, color(255, 100, 0), true, 0.005, center);
   fields.add(moon);
 
   planetpos = center.copy();
@@ -38,13 +36,22 @@ void setup() {
   planetdistance.rotate(PI/2);
   planetpos.add(planetdistance);
   
-  moon=new GravityField(10, 500, 0.03, planetpos, color(255, 200, 100), true, 0.005, center);
+  moon=new GravityField(10, 500, 0.03, planetpos, color(255, 200, 100), true, 0.007, center);
+  fields.add(moon);
+  
+  
+  planetpos = center.copy();
+  planetdistance = new PVector(250, 0);
+  planetdistance.rotate(PI+PI/3);
+  planetpos.add(planetdistance);
+  
+  moon=new GravityField(10, 350, 0.09, planetpos, color(255, 220, 0), true, 0.009, center);
   fields.add(moon);
   
   
   //System 2
   center =new PVector(200, height/2-200);
-  planet=new GravityField(50, 400, 0.1, center, color(0, 0, 200));
+  planet=new GravityField(50, 400, 0.2, center, color(0, 0, 200));
   fields.add(planet);
 
   planetpos = center.copy();
@@ -59,7 +66,7 @@ void setup() {
   planetdistance.rotate(PI/2);
   planetpos.add(planetdistance);
   
-  moon=new GravityField(10, 300, 0.02, planetpos, color(0, 200, 255), true, 0.003, center);
+  moon=new GravityField(10, 550, 0.02, planetpos, color(0, 200, 255), true, 0.007, center);
   fields.add(moon);
   
 
@@ -90,7 +97,6 @@ void draw() {
   }
   player.update();
   player.render();
-  println(frameRate);
 }
 
 void keyPressed() {
@@ -127,6 +133,6 @@ void serialEvent(Serial p) {
 
   //split the string at the tabs and convert the sections into integers:
   mysensors = int(split(message, ','));
-  float a =map(mysensors[0], -500, 500, 0, 2*PI);
+  float a =map(mysensors[0], -200, 200, 0, 2*PI);
   player.setAngle(a);
 }

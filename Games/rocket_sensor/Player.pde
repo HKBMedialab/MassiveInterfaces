@@ -3,14 +3,14 @@ class Player {
   PVector velocity=new PVector(0, 0);
   PVector acceleration=new PVector(0, 0);
   float angle=PI/2;
-  float drag=0.995;
+  float drag=0.999;
   float heading=0;
   float maxspeed=5;
   color mycolor=color(255, 50, 50);
   boolean thrust=false;
   float fuel=1000;
   float maxFuel=1000;
-  float thrustforce=0.15;
+  float thrustforce=0.25;
 
   Player() {
   }

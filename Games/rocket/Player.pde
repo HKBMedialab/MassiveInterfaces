@@ -1,6 +1,6 @@
 class Player {
-  PVector position=new PVector(0, height/2);
-  PVector velocity=new PVector(1, 0);
+  PVector position=new PVector(0, 0);
+  PVector velocity=new PVector(0, 0);
   PVector acceleration=new PVector(0, 0);
   float angle=PI/2;
   float drag=0.995;
@@ -41,7 +41,7 @@ class Player {
 
     if (thrust) {
       pushStyle();
-      fill('#FAC903');
+      fill(#FAC903);
       triangle(-10, 10, 10, 10, 0, 30 );
       popStyle();
     }
