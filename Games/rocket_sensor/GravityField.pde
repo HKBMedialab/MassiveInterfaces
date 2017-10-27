@@ -7,7 +7,6 @@ class GravityField {
   float distance=0;
   float ammount=0;
 
-  float [] animDiameter;
   float animationDiameter;
 
 
@@ -17,8 +16,6 @@ class GravityField {
   boolean bIsRotating=false;
   PVector rotateAround=new PVector(width/2, height/2);
   float rotationspeed=0;
-
-
 
 
 
@@ -52,14 +49,6 @@ class GravityField {
       position = rotatePointAroundCentre(rotateAround, position, rotationspeed);
     }
 
-    // gravity animation
-    for (int i=0; i<animDiameter.length; i++) {
-      animDiameter[i]-=gravityForce*50;
-      if (animDiameter[i]<0) {
-        animDiameter[i]=outerDiameter;
-      }
-    }
-
     animationDiameter-=gravityForce*100;
     if (animationDiameter<innerDiameter) {
       animationDiameter=outerDiameter;
@@ -67,8 +56,6 @@ class GravityField {
   }
 
   void render() {
-
-
     pushStyle();
     pushMatrix();
     translate(position.x, position.y);
@@ -78,8 +65,6 @@ class GravityField {
     stroke(myColor, alphaVal);
     noFill();
     ellipse(0, 0, animationDiameter, animationDiameter);
-
-
 
     fill(myColor, alphaVal);
     ellipse(0, 0, outerDiameter, outerDiameter);
@@ -97,37 +82,33 @@ class GravityField {
     else return false;
   }
 
-
-
   PVector rotatePointAroundCentre(PVector center, PVector _pos, float rotation) {
     PVector rotatedPoint = _pos.copy();
     rotatedPoint.sub(center.x, center.y);
     Float angle  = rotation;
     rotatedPoint.rotate(angle);
     rotatedPoint.add(center.x, center.y);
-
-
-    // Float angle  = radians(rotation);
-    // rotatedPoint.x = centreX + (cos(angle) * x - sin(angle) * y);
-    // rotatedPoint.y = centreY + (cos(angle) * y + sin(angle) * x);
     return rotatedPoint;
   }
 
   void setupFieldVisualsVars() {
-
-    alphaVal=map(gravityForce, 0.01, 0.1, 50, 150);
-
+    alphaVal=map(gravityForce, 0.01, 0.1, 30, 70);
     // field visuals
     distance=map(gravityForce, 0.01, 0.1, 200, 50);
-    println(distance);
     ammount=outerDiameter/distance;
-    println(ammount);
+  }
 
-    animDiameter =new float[int(ammount)];
-    float radius=0;
-    for (int i=0; i<animDiameter.length; i++) {
-      animDiameter[i]=radius;
-      radius+=distance;
-    }
+
+  // Helper & Getter
+  PVector getPosition() {
+    return position.copy();
+  }
+
+  float getInnerRadius() {
+    return innerDiameter/2;
+  }
+
+  float getOuterRadius() {
+    return outerDiameter/2;
   }
 }
