@@ -18,7 +18,7 @@ class Laser {
 
     pushStyle();
     pushMatrix();
-    stroke(#FF08E3);
+    stroke(305,95,99);
     strokeWeight(5);
     translate(position.x, position.y);
     rotate(velocity.heading()-PI/2);

@@ -1,7 +1,7 @@
 // definitions
 // FORCES
 float VERTICAL_THRUST=0.6;
-float HORIZONTAL_THRUST=0.25;
+float HORIZONTAL_THRUST=0.1;
 float GRAVITY = 0.1;
 // Constants
 float DRAG=0.99;
@@ -14,6 +14,9 @@ final int MAXLANDSPEED=3;
 final int PLAYING = 100;
 final int LANDED = 101;
 final int CRASHED = 102;
+
+
+float incomingThrustBefore=0;
 
 
 Player player;
@@ -38,9 +41,13 @@ int [] mysensors= new int[2];
 boolean bUseArduino=false;
 
 void setup() {
-  size(1600, 1000);
+  //size(1920, 1080);
+    size(1500, 1080);
+
   frameRate(30);
   //fullScreen();
+  colorMode(HSB);
+
 
 
   players[0]=new Player(new PVector(width-50, 50));
@@ -54,7 +61,7 @@ void setup() {
   float xoff = 0;
   PVector pos=new PVector(0, 0);
   while (pos.x<width) {
-    float w=random(20, 50);
+    float w=random(50, 150);
     //float h=random(10, height-200);
     float h = (noise(xoff) * height)-100;
 
@@ -77,7 +84,7 @@ void setup() {
   // Arduino stuff
   println(Serial.list());
   String portName = Serial.list()[3];
-  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1421", 9600);
+  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 9600);
   if (bUseArduino) myPort.bufferUntil(lf);
 
   // pixelDensity(2);
@@ -85,7 +92,7 @@ void setup() {
 
 void draw() {
   background(0);
-
+checkGroundCollision();
 
   for (Laser temp : lasers) {
     temp.update();
@@ -128,7 +135,21 @@ void draw() {
   //println(frameRate);
 }
 
+void checkGroundCollision() {
+  for (int i=0; i<players.length; i++) {
+    for (int k=0; k<grounds.size(); k++) {
+      Ground ground=grounds.get(k);
+      PVector gPos=ground.getPosition().copy();
 
+      float [] playerBoundingbox = players[i].getBoundingbox();
+      if (playerBoundingbox[2]>gPos.x && playerBoundingbox[0]<(gPos.x+ground.getWidth())&&playerBoundingbox[3]>gPos.y) {
+        println("col" + i +" "+playerBoundingbox[0]+" "+gPos.x);
+        players[i].position.y=gPos.y-45;
+      players[i].velocity.mult(-1);
+      }
+    }
+  }
+}
 
 
 
@@ -168,7 +189,6 @@ void checkPlattformCollision() {
     if (collisionstate!=0) {
       // inside traktorstrahl
       pushStyle();
-      colorMode(HSB);
       fill(c, 100);
       rect(plattformBoundingbox[0], plattformBoundingbox[1]-height, plattform.pWidth, height);
       popStyle();
@@ -179,23 +199,31 @@ void checkPlattformCollision() {
 
 
 void keyPressed() {
-  if (key == CODED) {
-    if (keyCode == UP) {
-      players[0].thrust=true;
-    } else if (keyCode == RIGHT) {
-      // player.turn("right");
-      players[0].rightthrust=true;
-    } else if (keyCode == LEFT) {
-      //player.turn("left");
-      players[0].leftthrust=true;
-    } /*else {
-     player.turn("straight");
-     }*/
-  }
+  println(key);
+  /*if (key == CODED) {
+   if (keyCode == UP) {
+   players[0].thrust=true;
+   } else if (keyCode == RIGHT) {
+   // player.turn("right");
+   players[0].rightthrust=true;
+   } else if (keyCode == LEFT) {
+   //player.turn("left");
+   players[0].leftthrust=true;
+   } /*else {
+   player.turn("straight");
+   }*/
+  //}*/
+
+
   if (key==' ') {
     //player.thrust=true;
   }
   if (key=='a') {
+  }
+
+
+  if (key=='s') {
+    players[0].setShieldActive(true);
   }
 
 
@@ -221,17 +249,22 @@ void removeToLimit(int maxLength)
 
 
 void keyReleased() {
-  if (key == CODED) {
-    if (keyCode == UP) {
-      players[0].thrust=false;
-    }
-    if (keyCode == RIGHT) {
-      players[0].rightthrust=false;
-    }
-    if (keyCode == LEFT) {
-      players[0].leftthrust=false;
-    }
+  /* if (key == CODED) {
+   if (keyCode == UP) {
+   players[0].thrust=false;
+   }
+   if (keyCode == RIGHT) {
+   players[0].rightthrust=false;
+   }
+   if (keyCode == LEFT) {
+   players[0].leftthrust=false;
+   }
+   }*/
+
+  if (key=='s') {
+    players[0].setShieldActive(false);
   }
+
 
 
 
@@ -252,8 +285,8 @@ void keyReleased() {
 }
 
 void mousePressed() {
-  Laser temp = new Laser(player.getPosition(), player.getDirection());
-  lasers.add(temp);
+  //Laser temp = new Laser(player.getPosition(), player.getDirection());
+  //lasers.add(temp);
 }
 
 
@@ -272,12 +305,29 @@ void serialEvent(Serial p) {
     mysensors = int(split(message, ','));
     float a =map(mysensors[0], -500, 500, 0, 2*PI);
     float thrust =mysensors[1];//map(mysensors[1], 0, 1000, 0, 1);
-    player.setAngle(a);
-    if (thrust>50) {
-      player.thrust=true;
+    float verticalthrust=mysensors[0];
+    float deltathrust= thrust-incomingThrustBefore;
+    // println(thrust);
+    println(verticalthrust);
+
+    if (deltathrust>300) {
+      players[0].thrust=true;
     } else {
-      player.thrust=false;
+      //players[0].thrust=false;
     }
+
+    if (verticalthrust>10) {
+      players[0].rightthrust=true;
+    } else {
+      players[0].rightthrust=false;
+    }
+    if (verticalthrust<-8) {
+      players[0].leftthrust=true;
+    } else {
+      players[0].leftthrust=false;
+    }
+
+    incomingThrustBefore=thrust;
   } 
   catch (Exception e) {
     println("Initialization exception");

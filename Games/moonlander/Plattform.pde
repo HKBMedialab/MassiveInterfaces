@@ -1,7 +1,7 @@
 class Plattform {
 
   PVector position = new PVector(0, 0);
-  int pWidth =80;
+  int pWidth =60;
   int pHeight =5;
   float [] boundingbox = new float[4];
 
@@ -19,7 +19,7 @@ class Plattform {
     pushMatrix();
     translate(position.x, position.y);
     pushStyle();
-    fill(#FF0000);
+    fill(0,255,255);
     rect(0, 0, pWidth, pHeight);
     popStyle();
     popMatrix();
@@ -34,7 +34,7 @@ class Plattform {
     pushStyle();
     rectMode(CORNER);
     noFill();
-    colorMode(RGB);
+   // colorMode(RGB);
     stroke(0, 255, 0);
     rect(boundingbox[0], boundingbox[1], boundingbox [2]-boundingbox [0], boundingbox [3]-boundingbox [1]);
     popStyle();

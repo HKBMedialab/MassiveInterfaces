@@ -12,18 +12,41 @@ class Player {
   boolean leftthrust=false;
   boolean rightthrust=false;
 
+  int thrustcounter=0;
+
+  int maxthrustcounter=5;
+
 
   float [] boundingbox = new float[4];
 
   int state=PLAYING;
 
+
+
+  Shield shield;
+
+
+
   Player(PVector pos) {
     position=pos.copy();
+    shield=new Shield();
+    shield.setShieldActive(false);
   }
 
   void update() {
+
+    if (thrust) {
+      thrustcounter++;
+    }
+
+    if (thrustcounter>maxthrustcounter) {
+      thrust=false;
+      thrustcounter=0;
+    }
+
     switch(state) {
     case LANDED: 
+      //updatePhysics();
 
       break;
 
@@ -33,18 +56,21 @@ class Player {
     }
     boundingbox=makeBoundingbox();
     wrap();
+
+
+    shield.setPosition(position);
   }
 
   void render() {
 
+
     switch(state) {
     case PLAYING:
       renderRocket();
-      println(state);
+      // println(state);
       break;
     case LANDED: 
       renderRocket();
-      println(state);
       break;
     case CRASHED:
       renderCrash();
@@ -52,6 +78,7 @@ class Player {
     }
 
 
+    shield.render();
 
 
     /*
@@ -267,13 +294,13 @@ class Player {
 
 
   void wrap() {
-    if (position.y>height) {
+   /* if (position.y>height) {
       position.y=0;
     }
     if (position.y<0) {
       position.y=height;
     }
-
+*/
     if (position.x>width) {
       position.x=0;
     }
@@ -295,7 +322,7 @@ class Player {
     pushStyle();
     rectMode(CORNER);
     noFill();
-    colorMode(RGB);
+    // colorMode(RGB);
     stroke(0, 255, 0);
     rect(boundingbox[0], boundingbox[1], boundingbox [2]-boundingbox [0], boundingbox [3]-boundingbox [1]);
     popStyle();
@@ -325,5 +352,11 @@ class Player {
     return state;
   }
 
+  void  setThrust(boolean _thrust) {
+    thrust=_thrust;
+  }
 
+  void setShieldActive(boolean _active) {
+    shield.setShieldActive(_active);
+  }
 }

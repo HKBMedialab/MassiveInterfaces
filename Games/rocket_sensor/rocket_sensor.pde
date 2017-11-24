@@ -12,7 +12,7 @@ int val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=true;
+boolean bUseArduino=false;
 
 void setup() {
   // size(1600, 1000);
@@ -28,10 +28,10 @@ void setup() {
   fields.add(planet);
   
   
-    /*//Event horrizon 2 circle
+    //Event horrizon 2 circle
   center =new PVector(width/2+200, height/2);
-  planet=new GravityField(200, 500, 0.2, center, color(200, 0, 0));
-  fields.add(planet);*/
+  planet=new GravityField(200, 500, 0.2, center, color(0, 0, 0));
+  fields.add(planet);
 
   PVector planetpos = center.copy();
   PVector planetdistance = new PVector(400, 0);
