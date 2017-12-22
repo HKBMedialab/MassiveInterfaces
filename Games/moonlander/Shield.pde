@@ -8,12 +8,15 @@ class Shield {
 
   int energycounter=0;
   int startenergy=100;
+  
+   CustomShape cs;
 
-  Shield() {
+  Shield( CustomShape _cs) {
     hue=map(219, 0, 360, 0, 255);
     sat=map(77, 0, 100, 0, 255);
     bright=map(99, 0, 100, 0, 255);
     alpha=100;
+    cs=_cs;
   }
 
   void update() {
@@ -21,6 +24,7 @@ class Shield {
     if (energycounter<0) {
       energycounter=0;
       setShieldActive(false);
+      cs.setShieldActive(false);
     }
   }
 

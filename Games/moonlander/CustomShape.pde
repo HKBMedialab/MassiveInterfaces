@@ -43,7 +43,7 @@ class CustomShape {
     makeBody(new Vec2(x, y));
     body.setUserData(this);
 
-    shield=new Shield();
+    shield=new Shield(this);
     shield.setShieldActive(false);
 
 
@@ -266,7 +266,17 @@ class CustomShape {
 
   void setShieldActive(boolean _active) {
     shield.setShieldActive(_active);
-    if (_active==true)changeType=true;
+    if (_active==true){
+      changeType=true;
+      
+      setRestitution(0);
+      
+    }else{
+          setRestitution(1);
+
+    }
+    
+    
   }
 
   // Change color when hit

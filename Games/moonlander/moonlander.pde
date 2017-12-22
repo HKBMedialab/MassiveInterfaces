@@ -36,6 +36,11 @@ final int CRASHED = 102;
 
 int MAXTHRUSTFORCE=8;
 public float trampolinval = 0;
+
+public float steerval = 0;
+public float rightSteer=220;
+public float leftSteer=260;
+
 public  float scaledInval=0;
 public float trampolinscalemin = 1;//7;
 public float trampolinscalemax = 12;//198;
@@ -49,10 +54,8 @@ float maxVal=0;
 float incomingThrustBefore=0;
 
 
-Player player;
-Player player2;
 
-Player [] players = new Player[2];
+
 
 ArrayList <Laser> lasers;//where our bullets will be stored
 
@@ -75,9 +78,10 @@ ArrayList<CustomShape> polygons;
 // Plotter Vars
 Plotter plotterA0; 
 Plotter plotterA1; 
+Plotter plotterA2; 
 
 // style
-float pH=500;
+float pH=200;
 
 
 
@@ -88,7 +92,7 @@ float val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=false;
+boolean bUseArduino=true;
 
 
 
@@ -154,6 +158,7 @@ void setup() {
 
   plotterA0=new Plotter();
   plotterA1=new Plotter();
+  plotterA2=new Plotter();
 }
 
 void draw() {
@@ -196,6 +201,10 @@ void draw() {
 
   plotterA1.addValue(scaledInval);
   plotterA1.update();
+
+  plotterA2.addValue(steerval);
+  plotterA2.update();
+
   pushMatrix();
   translate(0, 0);
   stroke(255, 255, 255);
@@ -205,6 +214,11 @@ void draw() {
 
   translate(0, pH);
   plotterA1.plott(0, MAXTHRUSTFORCE, 0, pH);
+
+  stroke(200, 255, 255);
+
+  translate(0, pH);
+  plotterA2.plott(0, 500, 0, pH);
 
   popMatrix();
 
@@ -219,14 +233,14 @@ void keyPressed() {
 
   switch(key) {
   case 's':
-   /* for (CustomShape cs : polygons) {
-      cs.setShieldActive(true);
-    }*/
-    
-    CustomShape cs = polygons.get(0);
-    cs.setShieldActive(true);
-    
-    
+    /* for (CustomShape cs : polygons) {
+     cs.setShieldActive(true);
+     }*/
+
+    CustomShape s = polygons.get(0);
+    s.setShieldActive(true);
+
+
     break;
 
   case 'w':
@@ -375,8 +389,12 @@ void serialEvent(Serial p) {
     // get message till linefeed;
     String message = myPort.readStringUntil(lf);
     //remove the linefeed
-    //message = trim(message);
-    trampolinval =float(message);
+    message = trim(message);
+
+    String[] sensordata = split(message, ',');
+    println(sensordata);
+
+    trampolinval =float(sensordata[0]);
 
     val=constrain(trampolinval, 0, 22);
 
@@ -399,15 +417,25 @@ void serialEvent(Serial p) {
       }
     } 
 
-    /*if (trampolinval<trampolinscalemax) {
-     for (CustomShape cs : polygons) {
-     cs.setThrust(true, int(scaledInval));
-     }
-     } else {
-     for (CustomShape cs : polygons) {
-     cs.setThrust(false);
-     }*/
-    // }
+
+    steerval=lerp(steerval, float(sensordata[1]), 0.3);
+
+    CustomShape cs = polygons.get(0);
+
+    if (steerval<rightSteer) {
+      cs.rightthrust=true;
+      println("right", steerval);
+    } else {
+      cs.rightthrust=false;
+    }
+
+    if (steerval>leftSteer) {
+      cs.leftthrust=true;
+            println("left", steerval);
+
+    } else {
+      cs.leftthrust=false;
+    }
   } 
   catch (Exception e) {
     println("Initialization exception");
@@ -430,10 +458,10 @@ void beginContact(Contact cp) {
 
   println(o2.getClass());
   println(o1.getClass());
- /* if (o2.getClass() == CustomShape.class ) {
-    CustomShape cs = (CustomShape) o2;
-    cs.change();
-  }*/
+  /* if (o2.getClass() == CustomShape.class ) {
+   CustomShape cs = (CustomShape) o2;
+   cs.change();
+   }*/
 
   if (o1.getClass() == Surface.class) {
     CustomShape cs = (CustomShape) o2;
@@ -447,7 +475,7 @@ void beginContact(Contact cp) {
 
 // Collision event functions!
 void endContact(Contact cp) {
-  println("contact");
+  //println("contact");
   // Get both fixtures
   Fixture f1 = cp.getFixtureA();
   Fixture f2 = cp.getFixtureB();
@@ -457,8 +485,8 @@ void endContact(Contact cp) {
   Object o1 = b1.getUserData();
   Object o2 = b2.getUserData();
 
-  println(o2.getClass());
-  println(o1.getClass());
+  // println(o2.getClass());
+  // println(o1.getClass());
   if (o2.getClass() == CustomShape.class ) {
     CustomShape cs = (CustomShape) o2;
     cs.endContact();
