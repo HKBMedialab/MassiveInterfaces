@@ -6,14 +6,14 @@
 // A rectangular box
 class CustomShape {
 
-  float maxSpeed=100;
+  float maxSpeed=MAXSPEED;
 
   boolean thrust=false;
   boolean leftthrust=false;
   boolean rightthrust=false;
 
   int thrustcounter=0;
-  int maxthrustcounter=5;
+  float maxthrustcounter=MAXTHRUSTCOUNTIMPULSE;
   boolean useCounter=true;
 
   int thrustforce=100;
@@ -21,7 +21,7 @@ class CustomShape {
   int rightthrustforce=500;
 
 
-  float lineardamping=1;
+  float lineardamping=LINEARDAMPING;
 
 
   color col;
@@ -31,6 +31,12 @@ class CustomShape {
 
   Shield shield;
 
+  PImage ship;
+  PImage duese;
+
+  PImage thrustimg;
+  PImage leftimg;
+  PImage rightimg;
 
 
 
@@ -48,6 +54,11 @@ class CustomShape {
 
 
     col = color(175);
+
+    ship = loadImage("ship/raumschiff_rot_30x40.png");
+    thrustimg = loadImage("ship/000.png");
+    rightimg = loadImage("ship/001.png");
+    leftimg = loadImage("ship/002.png");
   }
 
   // This function removes the particle from the box2d world
@@ -121,41 +132,66 @@ class CustomShape {
     rectMode(CENTER);
     pushMatrix();
     translate(pos.x, pos.y);
+
     rotate(-a);
     fill(col);
 
     stroke(0);
-    beginShape();
-    //println(vertices.length);
-    // For every vertex, convert to pixel vector
-    for (int i = 0; i < ps.getVertexCount(); i++) {
-      Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));
-      vertex(v.x, v.y);
-    }
-    endShape(CLOSE);
+
+    pushMatrix();
+    scale(2, 2);
+    image(ship, -15, 0);
+    popMatrix();
+
+
+    /* beginShape();
+     //println(vertices.length);
+     // For every vertex, convert to pixel vector
+     for (int i = 0; i < ps.getVertexCount(); i++) {
+     Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));
+     vertex(v.x, v.y);
+     }
+     endShape(CLOSE);*/
+
+
 
     if (thrust) {
-      float h=map(thrustforce, 0, MAXTHRUSTFORCE*500, 40, 120);
+      float h=map(thrustforce, 0, MAXTHRUSTFORCE*500, 80, 180);
       //println(thrustforce, h);
-      pushStyle();
-      fill(#FAC903);
-      triangle(-8, 40, 8, 40, 0, h );
-      popStyle();
+      /* pushStyle();
+       fill(#FAC903);
+       triangle(-8, 80, 8, 80, 0, h );
+       popStyle();*/
+
+      pushMatrix();
+      //scale(0.1,0.1);
+      image(thrustimg, -25, 75);
+      popMatrix();
     }
 
 
     if (rightthrust) {
-      pushStyle();
-      fill(#FAC903);
-      triangle(-30, 40, -15, 10, -15, 30 );
-      popStyle();
+      /* pushStyle();
+       fill(#FAC903);
+       triangle(-30, 40, -15, 10, -15, 30 );
+       popStyle();*/
+
+      pushMatrix();
+      //scale(0.1,0.1);
+      image(leftimg, -45, 70);
+      popMatrix();
     }
 
     if (leftthrust) {
-      pushStyle();
-      fill(#FAC903);
-      triangle(30, 40, 15, 10, 15, 30 );
-      popStyle();
+      /*pushStyle();
+       fill(#FAC903);
+       triangle(30, 40, 15, 10, 15, 30 );
+       popStyle();*/
+
+      pushMatrix();
+      //scale(0.1,0.1);
+      image(rightimg, 25, 70);
+      popMatrix();
     }
 
 
@@ -172,10 +208,10 @@ class CustomShape {
 
     Vec2[] vertices = new Vec2[5];
     vertices[0] = box2d.vectorPixelsToWorld(new Vec2(0, 0));
-    vertices[1] = box2d.vectorPixelsToWorld(new Vec2(15, 20));
-    vertices[2] = box2d.vectorPixelsToWorld(new Vec2(15, 40));
-    vertices[3] = box2d.vectorPixelsToWorld(new Vec2(-15, 40));
-    vertices[4] = box2d.vectorPixelsToWorld(new Vec2(-15, 20));
+    vertices[1] = box2d.vectorPixelsToWorld(new Vec2(13, 20));
+    vertices[2] = box2d.vectorPixelsToWorld(new Vec2(13, 70));
+    vertices[3] = box2d.vectorPixelsToWorld(new Vec2(-13, 70));
+    vertices[4] = box2d.vectorPixelsToWorld(new Vec2(-13, 20));
 
 
     sd.set(vertices, vertices.length);
@@ -191,9 +227,9 @@ class CustomShape {
     FixtureDef fd = new FixtureDef();
     fd.shape = sd;
     // Parameters that affect physics
-    fd.density = 0.8;
+    fd.density = DENSITY;
     fd.friction = 0.1;
-    fd.restitution =1;
+    fd.restitution =RESTITUTION;
     // Attach fixture to body
     body.createFixture(fd);
 
@@ -266,22 +302,23 @@ class CustomShape {
 
   void setShieldActive(boolean _active) {
     shield.setShieldActive(_active);
-    if (_active==true){
+    if (_active==true) {
       changeType=true;
-      
-      setRestitution(0);
-      
-    }else{
-          setRestitution(1);
 
+      setRestitution(0);
+    } else {
+      setRestitution(1);
     }
-    
-    
   }
 
   // Change color when hit
-  void change() {
-    col = color(255, 255, 255);
+  void hitSurface() {
+
+    Vec2 pos = box2d.getBodyPixelCoord(body);
+    if (pos.x>(width/2-15) &&pos.x<(width/2+15)) {
+          Vec2 velocity = body.getLinearVelocity();
+    float speed = velocity.length();   
+    }
   }
 
 
@@ -291,22 +328,22 @@ class CustomShape {
     f.setRestitution(0);
     changeType=false;
   }
-  
-  
-    void changeRestitution() {
+
+
+  void changeRestitution() {
     //body.setType(BodyType.KINEMATIC);
     Fixture f = body.getFixtureList();
     f.setRestitution(0);
   }
-  
-  
-  
-    void setRestitution(float res) {
+
+
+
+  void setRestitution(float res) {
     //body.setType(BodyType.KINEMATIC);
     Fixture f = body.getFixtureList();
     f.setRestitution(res);
   }
-  
+
 
   // Change color when hit
   void endContact() {

@@ -21,10 +21,18 @@ Box2DProcessing box2d;
 // FORCES
 float VERTICAL_THRUST=0.6;
 float HORIZONTAL_THRUST=0.1;
-float GRAVITY = 0.1;
+float GRAVITY = 60;
+
+float DENSITY = 0.4;
+float LINEARDAMPING = 0.4;
+float MAXTHRUSTCOUNTIMPULSE=5;
+
+float RESTITUTION=5;
+
+
 // Constants
 float DRAG=0.9;
-float MAXSPEED=5;
+float MAXSPEED=100;
 float MAXFUEL=1000;
 
 
@@ -38,8 +46,8 @@ int MAXTHRUSTFORCE=8;
 public float trampolinval = 0;
 
 public float steerval = 0;
-public float rightSteer=220;
-public float leftSteer=260;
+public float rightSteer=230;
+public float leftSteer=280;
 
 public  float scaledInval=0;
 public float trampolinscalemin = 1;//7;
@@ -92,7 +100,14 @@ float val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=true;
+boolean bUseArduino=false;
+
+
+
+
+// design
+PImage background;
+PImage background_back;
 
 
 
@@ -101,8 +116,8 @@ boolean bUseArduino=true;
 
 
 void setup() {
-  //size(1920, 1080);
-  size(1500, 1080);
+  size(1920, 1080);
+  // size(1500, 1080);
 
   frameRate(30);
   //fullScreen();
@@ -112,7 +127,7 @@ void setup() {
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
   // We are setting a custom gravity
-  box2d.setGravity(0, -40);
+  box2d.setGravity(0, -GRAVITY);
 
   // Turn on collision listening!
   box2d.listenForCollisions();
@@ -150,7 +165,7 @@ void setup() {
   // Arduino stuff
   println(Serial.list());
   String portName = Serial.list()[3];
-  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1421", 115200 );
+  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 115200 );
   if (bUseArduino) myPort.bufferUntil(lf);
 
   // pixelDensity(2);
@@ -159,10 +174,20 @@ void setup() {
   plotterA0=new Plotter();
   plotterA1=new Plotter();
   plotterA2=new Plotter();
+
+
+  background_back = loadImage("backgrounds/test_bg.png");
+  background = loadImage("backgrounds/test_landscape.png");
+
+
 }
 
 void draw() {
   background(0);
+  image(background_back, 0, 0);
+  image(background, 0, 0);
+
+  
 
   // We must always step through time!
   box2d.step();
@@ -204,21 +229,26 @@ void draw() {
 
   plotterA2.addValue(steerval);
   plotterA2.update();
+  
+  
+  
+  
+  
 
   pushMatrix();
   translate(0, 0);
   stroke(255, 255, 255);
   strokeWeight(1);
-  plotterA0.plott(0, 50, 0, pH);
+  //plotterA0.plott(0, 50, 0, pH);
   stroke(100, 255, 255);
 
   translate(0, pH);
-  plotterA1.plott(0, MAXTHRUSTFORCE, 0, pH);
+  //plotterA1.plott(0, MAXTHRUSTFORCE, 0, pH);
 
   stroke(200, 255, 255);
 
   translate(0, pH);
-  plotterA2.plott(0, 500, 0, pH);
+  //plotterA2.plott(0, 500, 0, pH);
 
   popMatrix();
 
@@ -418,7 +448,7 @@ void serialEvent(Serial p) {
     } 
 
 
-    steerval=lerp(steerval, float(sensordata[1]), 0.3);
+    steerval=lerp(steerval, float(sensordata[1]), 0.1);
 
     CustomShape cs = polygons.get(0);
 
@@ -431,8 +461,7 @@ void serialEvent(Serial p) {
 
     if (steerval>leftSteer) {
       cs.leftthrust=true;
-            println("left", steerval);
-
+      println("left", steerval);
     } else {
       cs.leftthrust=false;
     }
@@ -465,11 +494,11 @@ void beginContact(Contact cp) {
 
   if (o1.getClass() == Surface.class) {
     CustomShape cs = (CustomShape) o2;
-    cs.change();
+    cs.hitSurface();
   }
   if (o2.getClass() == Surface.class) {
     CustomShape cs = (CustomShape) o1;
-    cs.change();
+    cs.hitSurface();
   }
 }
 

@@ -1,7 +1,7 @@
 class Shield {
   PVector position=new PVector (0, 0);
-  float sWidth=100;
-  float sHeight=100;
+  float sWidth=150;
+  float sHeight=150;
   boolean bIsActive=false;
   float [] boundingbox = new float[4];
   float hue, sat, bright, alpha;

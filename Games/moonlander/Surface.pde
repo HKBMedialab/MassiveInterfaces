@@ -18,7 +18,7 @@ class Surface {
 
   Surface() {
 
-    s = RG.loadShape("landscape_3.svg");
+    s = RG.loadShape("test_landscapes.svg");
     points = s.getPoints();
     RPoint[] handles = s.getHandles();
 
@@ -31,7 +31,7 @@ class Surface {
 
     for (int i = handles.length-1; i>=0; i--) {
 
-      surface.add(new Vec2(handles[i].x-100, handles[i].y-100));
+      surface.add(new Vec2(handles[i].x, handles[i].y));
     }
 
     // Perlin noise argument
