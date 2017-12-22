@@ -24,6 +24,16 @@ class CustomShape {
   float lineardamping=1;
 
 
+  color col;
+
+  boolean changeType=false;
+  boolean changeRestitution=false;
+
+  Shield shield;
+
+
+
+
   // We need to keep track of a Body and a width and height
   Body body;
 
@@ -31,6 +41,13 @@ class CustomShape {
   CustomShape(float x, float y) {
     // Add the box to the box2d world
     makeBody(new Vec2(x, y));
+    body.setUserData(this);
+
+    shield=new Shield();
+    shield.setShieldActive(false);
+
+
+    col = color(175);
   }
 
   // This function removes the particle from the box2d world
@@ -57,6 +74,8 @@ class CustomShape {
 
   // Drawing the box
   void display() {
+    if (changeType)changeBodytype();
+    shield.update();
 
     body.setLinearDamping(lineardamping);
 
@@ -95,11 +114,16 @@ class CustomShape {
     PolygonShape ps = (PolygonShape) f.getShape();
 
 
+    shield.setPosition(new PVector(pos.x, pos.y));
+
+
+
     rectMode(CENTER);
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(-a);
-    fill(175);
+    fill(col);
+
     stroke(0);
     beginShape();
     //println(vertices.length);
@@ -136,6 +160,8 @@ class CustomShape {
 
 
     popMatrix();
+
+    shield.render();
   }
 
   // This function adds the rectangle to the box2d world
@@ -236,5 +262,44 @@ class CustomShape {
   void setRightThrust(boolean _thrust, int _thrustforce) {
     rightthrust=_thrust;
     rightthrustforce=_thrustforce;
+  }
+
+  void setShieldActive(boolean _active) {
+    shield.setShieldActive(_active);
+    if (_active==true)changeType=true;
+  }
+
+  // Change color when hit
+  void change() {
+    col = color(255, 255, 255);
+  }
+
+
+  void changeBodytype() {
+    //body.setType(BodyType.KINEMATIC);
+    Fixture f = body.getFixtureList();
+    f.setRestitution(0);
+    changeType=false;
+  }
+  
+  
+    void changeRestitution() {
+    //body.setType(BodyType.KINEMATIC);
+    Fixture f = body.getFixtureList();
+    f.setRestitution(0);
+  }
+  
+  
+  
+    void setRestitution(float res) {
+    //body.setType(BodyType.KINEMATIC);
+    Fixture f = body.getFixtureList();
+    f.setRestitution(res);
+  }
+  
+
+  // Change color when hit
+  void endContact() {
+    col = color(175);
   }
 }

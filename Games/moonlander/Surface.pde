@@ -18,7 +18,7 @@ class Surface {
 
   Surface() {
 
-    s = RG.loadShape("landscape_fl_2-01.svg");
+    s = RG.loadShape("landscape_3.svg");
     points = s.getPoints();
     RPoint[] handles = s.getHandles();
 
@@ -31,7 +31,7 @@ class Surface {
 
     for (int i = handles.length-1; i>=0; i--) {
 
-      surface.add(new Vec2(handles[i].x, handles[i].y));
+      surface.add(new Vec2(handles[i].x-100, handles[i].y-100));
     }
 
     // Perlin noise argument
@@ -75,6 +75,9 @@ class Surface {
     // Shortcut, we could define a fixture if we
     // want to specify frictions, restitution, etc.
     body.createFixture(chain, 1);
+    
+        body.setUserData(this);
+
   }
 
   // A simple function to just draw the edge chain as a series of vertex points

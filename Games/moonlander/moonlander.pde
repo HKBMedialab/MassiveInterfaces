@@ -1,8 +1,14 @@
+//defaults write -g ApplePressAndHoldEnabled -bool false
+//defaults write -g ApplePressAndHoldEnabled -bool true
+
+
+
 import shiffman.box2d.*;
 import org.jbox2d.collision.shapes.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.*;
-import org.jbox2d.dynamics.*;
+import org.jbox2d.dynamics.contacts.*;
+
 
 import geomerative.*;
 
@@ -82,7 +88,7 @@ float val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=true;
+boolean bUseArduino=false;
 
 
 
@@ -104,15 +110,19 @@ void setup() {
   // We are setting a custom gravity
   box2d.setGravity(0, -40);
 
+  // Turn on collision listening!
+  box2d.listenForCollisions();
+
+
 
   // Create the empty list
   particles = new ArrayList<Particle>();
 
   polygons = new ArrayList<CustomShape>();
-  CustomShape cs = new CustomShape(20, 20);
+  CustomShape cs = new CustomShape(20, 500);
   polygons.add(cs);
-  
-      RG.init(this);
+
+  RG.init(this);
 
 
   // Create the surface
@@ -209,13 +219,19 @@ void keyPressed() {
 
   switch(key) {
   case 's':
-    players[0].setShieldActive(true);
-
+   /* for (CustomShape cs : polygons) {
+      cs.setShieldActive(true);
+    }*/
+    
+    CustomShape cs = polygons.get(0);
+    cs.setShieldActive(true);
+    
+    
     break;
 
   case 'w':
     for (CustomShape cs : polygons) {
-      cs.thrust=true;
+      cs.setThrust(true, 2000);
     }
     break;
 
@@ -272,7 +288,7 @@ void keyReleased() {
 
   case 'w':
     for (CustomShape cs : polygons) {
-      //cs.thrust=false;
+      // cs.thrust=false;
     }
     break;
 
@@ -395,5 +411,56 @@ void serialEvent(Serial p) {
   } 
   catch (Exception e) {
     println("Initialization exception");
+  }
+}
+
+
+
+// Collision event functions!
+void beginContact(Contact cp) {
+  println("contact");
+  // Get both fixtures
+  Fixture f1 = cp.getFixtureA();
+  Fixture f2 = cp.getFixtureB();
+  Body b1 = f1.getBody();
+  Body b2 = f2.getBody();
+
+  Object o1 = b1.getUserData();
+  Object o2 = b2.getUserData();
+
+  println(o2.getClass());
+  println(o1.getClass());
+ /* if (o2.getClass() == CustomShape.class ) {
+    CustomShape cs = (CustomShape) o2;
+    cs.change();
+  }*/
+
+  if (o1.getClass() == Surface.class) {
+    CustomShape cs = (CustomShape) o2;
+    cs.change();
+  }
+  if (o2.getClass() == Surface.class) {
+    CustomShape cs = (CustomShape) o1;
+    cs.change();
+  }
+}
+
+// Collision event functions!
+void endContact(Contact cp) {
+  println("contact");
+  // Get both fixtures
+  Fixture f1 = cp.getFixtureA();
+  Fixture f2 = cp.getFixtureB();
+  Body b1 = f1.getBody();
+  Body b2 = f2.getBody();
+
+  Object o1 = b1.getUserData();
+  Object o2 = b2.getUserData();
+
+  println(o2.getClass());
+  println(o1.getClass());
+  if (o2.getClass() == CustomShape.class ) {
+    CustomShape cs = (CustomShape) o2;
+    cs.endContact();
   }
 }
