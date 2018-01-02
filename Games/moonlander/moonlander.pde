@@ -21,11 +21,11 @@ Box2DProcessing box2d;
 // FORCES
 float VERTICAL_THRUST=0.6;
 float HORIZONTAL_THRUST=0.1;
-float GRAVITY = 60;
+float GRAVITY = 40;
 
-float DENSITY = 0.4;
-float LINEARDAMPING = 0.4;
-float MAXTHRUSTCOUNTIMPULSE=5;
+float DENSITY = 0.6;
+float LINEARDAMPING = 1;
+float MAXTHRUSTCOUNTIMPULSE=7;
 
 float RESTITUTION=5;
 
@@ -46,8 +46,8 @@ int MAXTHRUSTFORCE=8;
 public float trampolinval = 0;
 
 public float steerval = 0;
-public float rightSteer=230;
-public float leftSteer=280;
+public float rightSteer=235;
+public float leftSteer=270;
 
 public  float scaledInval=0;
 public float trampolinscalemin = 1;//7;
