@@ -68,14 +68,14 @@ void draw() {
   for (int i=0; i<donkeypositions.length; i++ ) {
     fill(200);
     noStroke();
-    rect(donkeypositions[i].x, donkeypositions[i].y, donkeywidth, donkeyheight);
+   // rect(donkeypositions[i].x, donkeypositions[i].y, donkeywidth, donkeyheight);
   }
 
   //car
   fill(255, 0, 0);
-  rect(carpos.x, carpos.y, 15, 25);
+ // rect(carpos.x, carpos.y, 15, 25);
 
-  hittest();
+  //hittest();
 
   if (!pause) {
     //move background
