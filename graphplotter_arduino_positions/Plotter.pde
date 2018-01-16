@@ -5,13 +5,14 @@ class Plotter {
 
   ArrayList<PVector> PVal = new ArrayList<PVector>();
   ArrayList<PVector> peaks = new ArrayList<PVector>();
-  int peaktrigger= 160;
+  int peaktrigger= 200;
   int minpeaktrigger=125;
 
   int maxlength=100;
   int stretch=3;
   int leftpadding=20;
   int rightpadding=20;
+  int debugtranslateY=50;
 
   Plotter() {
     maxlength=(width-leftpadding-rightpadding)/stretch;
@@ -26,7 +27,8 @@ class Plotter {
 
   void update() {
 
-
+   pushMatrix();
+    translate(0, debugtranslateY);
     for (int i=0; i<positions.size(); i++) {
       float position=positions.get(i);
       position=position-stretch;
@@ -55,7 +57,15 @@ class Plotter {
     if (PVal.size()>maxlength)PVal.remove(0);
 
 
-   // text(positions.size(), 100, 100);
+    pushStyle();
+    stroke(255, 0, 0);
+    line(0, peaktrigger, width, peaktrigger);
+    line(0, minpeaktrigger, width, minpeaktrigger);
+
+    popStyle();
+    popMatrix();
+
+    // text(positions.size(), 100, 100);
   }
 
   void plott() {
@@ -73,7 +83,8 @@ class Plotter {
 
 
   void plott(float _inMin, float _inMax, float _min, float _max) {
-
+    pushMatrix();
+    translate(0, debugtranslateY);
     line(0, 0, width, 0);
     int pos=0;
     for (int i=1; i<values.size(); i++) {
@@ -86,9 +97,9 @@ class Plotter {
 
       float val=map(values.get(i-1), _inMin, _inMax, _min, _max);
       float val2=map(values.get(i), _inMin, _inMax, _min, _max);
-      
-      
-      line(positionB, val, position, val2);
+
+
+      // line(positionB, val, position, val2);
       // stroke(255, 0, 0);
       line(positionPPVal.x, positionPPVal.y, positionBPVal.x, positionBPVal.y);
 
@@ -96,6 +107,7 @@ class Plotter {
       pos+=stretch;
     }
     text(values.get(values.size()-1), positions.get(positions.size()-1), _max);
+    popMatrix();
   }
 
   void reversePlott() {
