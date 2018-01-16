@@ -13,7 +13,6 @@ class CustomShape {
   boolean rightthrust=false;
 
   int thrustcounter=0;
-  float maxthrustcounter=MAXTHRUSTCOUNTIMPULSE;
   boolean useCounter=true;
 
   int thrustforce=100;
@@ -21,7 +20,6 @@ class CustomShape {
   int rightthrustforce=500;
 
 
-  float lineardamping=LINEARDAMPING;
 
 
   color col;
@@ -88,14 +86,14 @@ class CustomShape {
     if (changeType)changeBodytype();
     shield.update();
 
-    body.setLinearDamping(lineardamping);
+    body.setLinearDamping(DAMPING);
 
     if (useCounter) {
       if (thrust) {
         thrustcounter++;
       }
 
-      if (thrustcounter>maxthrustcounter) {
+      if (thrustcounter>IMPULSE) {
         thrust=false;
         thrustcounter=0;
       }
@@ -280,6 +278,7 @@ class CustomShape {
   void setThrust(boolean _thrust, int _thrustforce) {
     thrust=_thrust;
     thrustforce=_thrustforce;
+ 
   }
 
   void setLeftThrust(boolean _thrust) {
@@ -304,10 +303,9 @@ class CustomShape {
     shield.setShieldActive(_active);
     if (_active==true) {
       changeType=true;
-
       setRestitution(0);
     } else {
-      setRestitution(1);
+      setRestitution(RESTITUTION);
     }
   }
 
@@ -316,8 +314,8 @@ class CustomShape {
 
     Vec2 pos = box2d.getBodyPixelCoord(body);
     if (pos.x>(width/2-15) &&pos.x<(width/2+15)) {
-          Vec2 velocity = body.getLinearVelocity();
-    float speed = velocity.length();   
+      Vec2 velocity = body.getLinearVelocity();
+      float speed = velocity.length();
     }
   }
 

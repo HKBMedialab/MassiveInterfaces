@@ -13,38 +13,45 @@ import org.jbox2d.dynamics.contacts.*;
 import geomerative.*;
 
 
+import ddf.minim.*;
+import ddf.minim.effects.*;
+
+
+
 // A reference to our box2d world
 Box2DProcessing box2d;
 
 
 // definitions
 // FORCES
-float VERTICAL_THRUST=0.6;
-float HORIZONTAL_THRUST=0.1;
+//float VERTICAL_THRUST=0.6;
+//float HORIZONTAL_THRUST=0.1;
+
+// WORLD
 float GRAVITY = 40;
+float RESTITUTION=1;
+float DAMPING = 1;
 
+
+// SPACESHIP
 float DENSITY = 0.6;
-float LINEARDAMPING = 1;
-float MAXTHRUSTCOUNTIMPULSE=7;
-
-float RESTITUTION=5;
-
-
-// Constants
-float DRAG=0.9;
 float MAXSPEED=100;
-float MAXFUEL=1000;
+float IMPULSE=7;
+float MAXTHRUSTFORCE=8;
 
 
 final int MAXLANDSPEED=3;
+
+
+
 
 final int PLAYING = 100;
 final int LANDED = 101;
 final int CRASHED = 102;
 
-int MAXTHRUSTFORCE=8;
-public float trampolinval = 0;
 
+// SENSORVALUES
+public float trampolinval = 0;
 public float steerval = 0;
 public float rightSteer=235;
 public float leftSteer=270;
@@ -52,20 +59,11 @@ public float leftSteer=270;
 public  float scaledInval=0;
 public float trampolinscalemin = 1;//7;
 public float trampolinscalemax = 12;//198;
+
 float minVal=400;
 float maxVal=0;
 
-
-
-
-
 float incomingThrustBefore=0;
-
-
-
-
-
-ArrayList <Laser> lasers;//where our bullets will be stored
 
 
 Plattform plattform;
@@ -73,8 +71,7 @@ Plattform plattform;
 // An object to store information about the uneven surface
 Surface surface;
 
-// An ArrayList of particles that will fall on the surface
-ArrayList<Particle> particles;
+
 
 // A list for all of our rectangles
 ArrayList<CustomShape> polygons;
@@ -111,7 +108,23 @@ PImage background_back;
 
 
 
+import oscP5.*;
+import netP5.*;
+OscP5 oscP5;
 
+// GUI
+NetAddress myRemoteLocation;
+
+
+// gui settings 
+JSONObject settings;
+
+
+// sound
+Minim minim;
+AudioPlayer ambisound;
+AudioPlayer boostsound;
+AudioPlayer hitsound;
 
 
 
@@ -122,6 +135,10 @@ void setup() {
   frameRate(30);
   //fullScreen();
   colorMode(HSB);
+
+
+
+
 
   // Initialize box2d physics and create the world
   box2d = new Box2DProcessing(this);
@@ -134,8 +151,6 @@ void setup() {
 
 
 
-  // Create the empty list
-  particles = new ArrayList<Particle>();
 
   polygons = new ArrayList<CustomShape>();
   CustomShape cs = new CustomShape(20, 500);
@@ -147,20 +162,7 @@ void setup() {
   // Create the surface
   surface = new Surface();
 
-
-
-  //players[0]=new Player(new PVector(width-50, 50));
-  //players[1]=new Player(new PVector(50, 50));
-
-  lasers = new ArrayList();
-
-
-
-
   //plattform=new Plattform(p);
-
-
-
 
   // Arduino stuff
   println(Serial.list());
@@ -180,14 +182,38 @@ void setup() {
   background = loadImage("backgrounds/test_landscape.png");
 
 
+  /* start oscP5, listening for incoming messages at port 8000 */
+  oscP5 = new OscP5(this, 8000);
+  myRemoteLocation = new NetAddress("127.0.0.1 ", 8000);
+  //loadSettings(myRemoteLocation);
+
+  // Sound
+  minim = new Minim(this);
+  ambisound = minim.loadFile("sounds/Game Ambient.mp3");
+  ambisound.loop();  
+  // boostsound = minim.loadFile("sounds/Boost.aif",16);
+  //  hitsound = minim.loadFile("sounds/Hit.aif",16);
 }
+
+
+
+
+
+
+void setTocuosc(NetAddress _remoteLocation, String adress, float value) {
+  OscMessage myMessage = new OscMessage("/1/gravlabel");
+  myMessage.add(GRAVITY); /* add an int to the osc message */
+  /* send the message */
+  oscP5.send(myMessage, myRemoteLocation);
+}
+
 
 void draw() {
   background(0);
   image(background_back, 0, 0);
   image(background, 0, 0);
 
-  
+
 
   // We must always step through time!
   box2d.step();
@@ -219,7 +245,6 @@ void draw() {
 
 
 
-  removeToLimit(100);
 
   plotterA0.addValue(trampolinval);
   plotterA0.update();
@@ -229,11 +254,11 @@ void draw() {
 
   plotterA2.addValue(steerval);
   plotterA2.update();
-  
-  
-  
-  
-  
+
+
+
+
+
 
   pushMatrix();
   translate(0, 0);
@@ -283,12 +308,14 @@ void keyPressed() {
     for (CustomShape cs : polygons) {
       cs.leftthrust=true;
     }
+
     break;
 
   case 'd':
     for (CustomShape cs : polygons) {
       cs.rightthrust=true;
     }
+
     break;
 
 
@@ -325,6 +352,7 @@ void keyPressed() {
 
 void keyReleased() {
   println("release "+key);
+
   switch(key) {
   case 's':
     //players[0].setShieldActive(false);
@@ -361,13 +389,6 @@ void mousePressed() {
 
 
 
-void removeToLimit(int maxLength)
-{
-  while (lasers.size() > maxLength)
-  {
-    lasers.remove(0);
-  }
-}
 
 /*
 void serialEvent(Serial p) {
@@ -449,7 +470,6 @@ void serialEvent(Serial p) {
 
 
     steerval=lerp(steerval, float(sensordata[1]), 0.1);
-
     CustomShape cs = polygons.get(0);
 
     if (steerval<rightSteer) {
@@ -475,7 +495,7 @@ void serialEvent(Serial p) {
 
 // Collision event functions!
 void beginContact(Contact cp) {
-  println("contact");
+  // println("contact");
   // Get both fixtures
   Fixture f1 = cp.getFixtureA();
   Fixture f2 = cp.getFixtureB();
@@ -485,8 +505,8 @@ void beginContact(Contact cp) {
   Object o1 = b1.getUserData();
   Object o2 = b2.getUserData();
 
-  println(o2.getClass());
-  println(o1.getClass());
+  // println(o2.getClass());
+  // println(o1.getClass());
   /* if (o2.getClass() == CustomShape.class ) {
    CustomShape cs = (CustomShape) o2;
    cs.change();
@@ -520,4 +540,147 @@ void endContact(Contact cp) {
     CustomShape cs = (CustomShape) o2;
     cs.endContact();
   }
+}
+
+
+
+void oscEvent(OscMessage theOscMessage) {
+
+  String address = theOscMessage.netAddress().address();
+  myRemoteLocation = new NetAddress(address, 9000);
+
+  String addr = theOscMessage.addrPattern();
+  float  val  = theOscMessage.get(0).floatValue();
+
+  if (addr.equals("/1/gravity")) { 
+    GRAVITY = val;
+    box2d.setGravity(0, -GRAVITY);
+    OscMessage myMessage = new OscMessage("/1/gravitylabel");
+    myMessage.add(val); /* add an int to the osc message */
+    /* send the message */
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/1/restitution")) { 
+    RESTITUTION = val;
+    OscMessage myMessage = new OscMessage("/1/restitutionlabel");
+    myMessage.add(val); /* add an int to the osc message */
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/1/damping")) { 
+    DAMPING = val;
+    OscMessage myMessage = new OscMessage("/1/dampinglabel");
+    myMessage.add(val); /* add an int to the osc message */
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/1/density")) { 
+    DENSITY = val;
+    OscMessage myMessage = new OscMessage("/1/densitylabel");
+    myMessage.add(val); /* add an int to the osc message */
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/1/maxspeed")) { 
+    MAXSPEED = val;
+    OscMessage myMessage = new OscMessage("/1/maxspeedlabel");
+    myMessage.add(val); /* add an int to the osc message */
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/1/impulse")) { 
+    MAXSPEED = val;
+    OscMessage myMessage = new OscMessage("/1/impulselabel");
+    myMessage.add(val); /* add an int to the osc message */
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/1/maxthrustforce")) { 
+    MAXSPEED = val;
+    OscMessage myMessage = new OscMessage("/1/maxthrustforcelabel");
+    myMessage.add(val); /* add an int to the osc message */
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/1/load")) { 
+    loadSettings(myRemoteLocation);
+  }
+}
+
+void loadSettings(NetAddress _myRemoteLocation) {
+  settings = loadJSONObject("settings.json");
+
+  delay(10);
+
+  //world
+  GRAVITY = settings.getFloat("Gravity");
+  RESTITUTION = settings.getFloat("Restitution");
+  DAMPING = settings.getFloat("Damping");
+
+  //vessel
+  DENSITY = settings.getFloat("Density");
+  MAXSPEED = settings.getFloat("Maxspeed");
+  IMPULSE = settings.getFloat("Impulse");
+  MAXTHRUSTFORCE = settings.getFloat("Maxthrustforce");
+
+
+
+
+  OscMessage myMessage = new OscMessage("/1/gravitylabel");
+  myMessage.add(GRAVITY); /* add an int to the osc message */
+  /* send the message */
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/gravity");
+  myMessage.add(GRAVITY); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/restitutionlabel");
+  myMessage.add(RESTITUTION); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/restitution");
+  myMessage.add(RESTITUTION); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/dampinglabel");
+  myMessage.add(DAMPING); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/damping");
+  myMessage.add(DAMPING); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/densitylabel");
+  myMessage.add(DENSITY); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/density");
+  myMessage.add(DENSITY); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/maxspeedlabel");
+  myMessage.add(MAXSPEED); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/maxspeed");
+  myMessage.add(MAXSPEED); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/impulselabel");
+  myMessage.add(IMPULSE); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/impulse");
+  myMessage.add(IMPULSE); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+
+  myMessage = new OscMessage("/1/maxthrustforcelabel");
+  myMessage.add(MAXTHRUSTFORCE); 
+  oscP5.send(myMessage, myRemoteLocation);
+
+  myMessage = new OscMessage("/1/maxthrustforce");
+  myMessage.add(MAXTHRUSTFORCE); 
+  oscP5.send(myMessage, myRemoteLocation);
+}
+
+
+void saveSettings() {
+  JSONObject parameters = new JSONObject();
+  parameters.setFloat("Gravity", GRAVITY);
+  parameters.setFloat("Restitution", RESTITUTION);
+  parameters.setFloat("Damping", DAMPING);
+  parameters.setFloat("Density", DENSITY);
+  parameters.setFloat("Maxspeed", MAXSPEED);
+  parameters.setFloat("Impulse", IMPULSE);
+  parameters.setFloat("Maxthrustforce", MAXTHRUSTFORCE);
+  saveJSONObject(parameters, "data/settings.json");
 }
