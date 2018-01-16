@@ -336,7 +336,7 @@ void keyPressed() {
 
   case '3':
     for (CustomShape cs : polygons) {
-      cs.setThrustForce(MAXTHRUSTFORCE);
+      //cs.setThrustForce(MAXTHRUSTFORCE);
     }
     break;
 
