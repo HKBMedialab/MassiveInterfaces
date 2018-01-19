@@ -16,7 +16,7 @@ float pH=500;
 
 
 void setup() {
-  size(1500, 1000);
+  size(100, 1000);
   plotterA0=new Plotter();
   //plotterA1=new Plotter();
   //plotterA2=new Plotter();
@@ -71,8 +71,7 @@ void serialEvent(Serial p) {
     //remove the linefeed
     message = trim(message);
    val =float(message);
-   
-   val=map(val,-16,16,0,255);
+   val=map(val,-5,5,0,255);
 
   } 
   catch (Exception e) {

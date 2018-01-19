@@ -35,12 +35,12 @@ float DAMPING = 1;
 
 // SPACESHIP
 float DENSITY = 0.6;
-float MAXSPEED=100;
-float IMPULSE=7;
+float MAXSPEED=200;
+float IMPULSE=10;
 float MAXTHRUSTFORCE=8;
 
 
-final int MAXLANDSPEED=3;
+final int MAXLANDSPEED=20;
 
 
 
@@ -48,6 +48,8 @@ final int MAXLANDSPEED=3;
 final int PLAYING = 100;
 final int LANDED = 101;
 final int CRASHED = 102;
+
+int gamestate=PLAYING;
 
 
 // SENSORVALUES
@@ -86,7 +88,7 @@ Plotter plotterA1;
 Plotter plotterA2; 
 
 // style
-float pH=200;
+float pH=255;
 
 
 
@@ -153,7 +155,7 @@ void setup() {
 
 
   polygons = new ArrayList<CustomShape>();
-  CustomShape cs = new CustomShape(20, 500);
+  CustomShape cs = new CustomShape(this, 20, 500);
   polygons.add(cs);
 
   RG.init(this);
@@ -191,7 +193,7 @@ void setup() {
   minim = new Minim(this);
   ambisound = minim.loadFile("sounds/Game Ambient.mp3");
   ambisound.loop();  
-  // boostsound = minim.loadFile("sounds/Boost.aif",16);
+  boostsound = minim.loadFile("sounds/boost.aifc", 16);
   //  hitsound = minim.loadFile("sounds/Hit.aif",16);
 }
 
@@ -207,77 +209,111 @@ void setTocuosc(NetAddress _remoteLocation, String adress, float value) {
   oscP5.send(myMessage, myRemoteLocation);
 }
 
-
+float debugval;
 void draw() {
+
+  //debugval=lerp(debugval,random(100, 200),0.05);
+  debugval=random(100, 200);
+  plotterA0.addValue(debugval);
+  plotterA0.update();
+
+
+
   background(0);
   image(background_back, 0, 0);
   image(background, 0, 0);
 
 
 
-  // We must always step through time!
-  box2d.step();
 
 
+  switch(gamestate) {
 
-  // Draw the surface
-  surface.display();
+  case PLAYING:
 
+    // We must always step through time!
+    box2d.step();
 
+    // Draw the surface
+    surface.display();
 
-  // Display all the people
-  for (CustomShape cs : polygons) {
-    cs.display();
-  }
-
-  // people that leave the screen, we delete them
-  // (note they have to be deleted from both the box2d world and our list
-  for (int i = polygons.size()-1; i >= 0; i--) {
-    CustomShape cs = polygons.get(i);
-    if (cs.done()) {
-      polygons.remove(i);
+    // Display all the people
+    for (CustomShape cs : polygons) {
+      cs.display();
     }
+
+    // people that leave the screen, we delete them
+    // (note they have to be deleted from both the box2d world and our list
+    for (int i = polygons.size()-1; i >= 0; i--) {
+      CustomShape cs = polygons.get(i);
+      if (cs.done()) {
+        polygons.remove(i);
+      }
+    }
+    break;
+
+  case LANDED:
+    text("YOU WIN", width/2, height/2);
+    break;
+
+  case CRASHED:
+    text("YOU LOOSE", width/2, height/2);
+
+    break;
   }
-
-
-
-
-
-
-
-
-  plotterA0.addValue(trampolinval);
-  plotterA0.update();
-
-  plotterA1.addValue(scaledInval);
-  plotterA1.update();
-
-  plotterA2.addValue(steerval);
-  plotterA2.update();
-
-
-
 
 
 
   pushMatrix();
-  translate(0, 0);
+  translate(0, 100);
   stroke(255, 255, 255);
   strokeWeight(1);
-  //plotterA0.plott(0, 50, 0, pH);
-  stroke(100, 255, 255);
-
-  translate(0, pH);
-  //plotterA1.plott(0, MAXTHRUSTFORCE, 0, pH);
-
+  //plotterA0.plott(0, 200, 0, pH);
+  
+  plotterA0.plottScale();
   stroke(200, 255, 255);
-
-  translate(0, pH);
-  //plotterA2.plott(0, 500, 0, pH);
-
+  line(0, 0, width, 0);
+  stroke(100, 255, 255);
   popMatrix();
 
-  text(trampolinval, 0, 200);
+
+
+
+
+  /*
+  plotterA0.addValue(trampolinval);
+   plotterA0.update();
+   
+   plotterA1.addValue(scaledInval);
+   plotterA1.update();
+   
+   plotterA2.addValue(steerval);
+   plotterA2.update();
+   
+   
+   
+   
+   
+   
+   pushMatrix();
+   translate(0, 0);
+   stroke(255, 255, 255);
+   strokeWeight(1);
+   //plotterA0.plott(0, 50, 0, pH);
+   stroke(100, 255, 255);
+   
+   translate(0, pH);
+   //plotterA1.plott(0, MAXTHRUSTFORCE, 0, pH);
+   
+   stroke(200, 255, 255);
+   
+   translate(0, pH);
+   //plotterA2.plott(0, 500, 0, pH);
+   
+   popMatrix();
+   
+   text(trampolinval, 0, 200);*/
+
   text(frameRate, 200, 200);
 }
 
@@ -302,6 +338,7 @@ void keyPressed() {
     for (CustomShape cs : polygons) {
       cs.setThrust(true, 2000);
     }
+    boostsound.play();
     break;
 
   case 'a':
@@ -542,6 +579,9 @@ void endContact(Contact cp) {
   }
 }
 
+void changeGameState(int _state) {
+  gamestate=_state;
+}
 
 
 void oscEvent(OscMessage theOscMessage) {
@@ -580,7 +620,7 @@ void oscEvent(OscMessage theOscMessage) {
     myMessage.add(val); /* add an int to the osc message */
     oscP5.send(myMessage, myRemoteLocation);
   } else if (addr.equals("/1/impulse")) { 
-    MAXSPEED = val;
+    IMPULSE = val;
     OscMessage myMessage = new OscMessage("/1/impulselabel");
     myMessage.add(val); /* add an int to the osc message */
     oscP5.send(myMessage, myRemoteLocation);
@@ -590,12 +630,19 @@ void oscEvent(OscMessage theOscMessage) {
     myMessage.add(val); /* add an int to the osc message */
     oscP5.send(myMessage, myRemoteLocation);
   } else if (addr.equals("/1/load")) { 
+    println("LOAD SETTINGS");
     loadSettings(myRemoteLocation);
+  } else if (addr.equals("/1/save")) { 
+    saveSettings();
   }
 }
 
 void loadSettings(NetAddress _myRemoteLocation) {
+
   settings = loadJSONObject("settings.json");
+
+  println("here");
+
 
   delay(10);
 
@@ -611,65 +658,69 @@ void loadSettings(NetAddress _myRemoteLocation) {
   MAXTHRUSTFORCE = settings.getFloat("Maxthrustforce");
 
 
+  for (CustomShape cs : polygons) {
+    cs.setRestitution(RESTITUTION);
+  }
 
 
   OscMessage myMessage = new OscMessage("/1/gravitylabel");
   myMessage.add(GRAVITY); /* add an int to the osc message */
   /* send the message */
-  oscP5.send(myMessage, myRemoteLocation);
+
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/gravity");
   myMessage.add(GRAVITY); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/restitutionlabel");
   myMessage.add(RESTITUTION); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/restitution");
   myMessage.add(RESTITUTION); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/dampinglabel");
   myMessage.add(DAMPING); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/damping");
   myMessage.add(DAMPING); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/densitylabel");
   myMessage.add(DENSITY); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/density");
   myMessage.add(DENSITY); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/maxspeedlabel");
   myMessage.add(MAXSPEED); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/maxspeed");
   myMessage.add(MAXSPEED); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/impulselabel");
   myMessage.add(IMPULSE); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/impulse");
   myMessage.add(IMPULSE); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
 
   myMessage = new OscMessage("/1/maxthrustforcelabel");
   myMessage.add(MAXTHRUSTFORCE); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/1/maxthrustforce");
   myMessage.add(MAXTHRUSTFORCE); 
-  oscP5.send(myMessage, myRemoteLocation);
+  oscP5.send(myMessage, _myRemoteLocation);
 }
 
 

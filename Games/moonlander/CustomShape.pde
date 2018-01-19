@@ -1,13 +1,4 @@
-// The Nature of Code
-// <http://www.shiffman.net/teaching/nature>
-// Spring 2011
-// Box2DProcessing example
-
-// A rectangular box
 class CustomShape {
-
-  float maxSpeed=MAXSPEED;
-
   boolean thrust=false;
   boolean leftthrust=false;
   boolean rightthrust=false;
@@ -19,8 +10,12 @@ class CustomShape {
   int leftthrustforce=-500;
   int rightthrustforce=500;
 
+  //Thrust animation
+  int num=5;
+  ArrayList <Thrust>thrustrings; 
 
 
+  int thrustFramedistance=3;
 
   color col;
 
@@ -36,13 +31,14 @@ class CustomShape {
   PImage leftimg;
   PImage rightimg;
 
-
+  PApplet sketchRef;
 
   // We need to keep track of a Body and a width and height
   Body body;
 
   // Constructor
-  CustomShape(float x, float y) {
+  CustomShape(PApplet pa, float x, float y) {
+    sketchRef=pa;
     // Add the box to the box2d world
     makeBody(new Vec2(x, y));
     body.setUserData(this);
@@ -57,6 +53,7 @@ class CustomShape {
     thrustimg = loadImage("ship/000.png");
     rightimg = loadImage("ship/001.png");
     leftimg = loadImage("ship/002.png");
+    thrustrings= new ArrayList<Thrust>();
   }
 
   // This function removes the particle from the box2d world
@@ -107,8 +104,8 @@ class CustomShape {
     // limit to max Speed;
     Vec2 velocity = body.getLinearVelocity();
     float speed = velocity.length();
-    if (speed > maxSpeed) {
-      body.setLinearVelocity(velocity.mul(maxSpeed/speed));
+    if (speed > MAXSPEED) {
+      body.setLinearVelocity(velocity.mul(MAXSPEED/speed));
     }
 
 
@@ -121,8 +118,6 @@ class CustomShape {
 
     Fixture f = body.getFixtureList();
     PolygonShape ps = (PolygonShape) f.getShape();
-
-
     shield.setPosition(new PVector(pos.x, pos.y));
 
 
@@ -152,44 +147,51 @@ class CustomShape {
      endShape(CLOSE);*/
 
 
+    for (Thrust t : thrustrings) {
+      t.update();
+      t.render();
+    }
+
+
+    for (int i = thrustrings.size()-1; i >= 0; i--) {
+      Thrust t = thrustrings.get(i);
+      if (t.tWidth<1) {
+        thrustrings.remove(i);
+      }
+    }
+
+
+
 
     if (thrust) {
       float h=map(thrustforce, 0, MAXTHRUSTFORCE*500, 80, 180);
-      //println(thrustforce, h);
-      /* pushStyle();
-       fill(#FAC903);
-       triangle(-8, 80, 8, 80, 0, h );
-       popStyle();*/
-
-      pushMatrix();
-      //scale(0.1,0.1);
-      image(thrustimg, -25, 75);
-      popMatrix();
+      if (frameCount%thrustFramedistance==0) {
+        Thrust t = new Thrust();
+        thrustrings.add(t);
+      }
     }
 
 
     if (rightthrust) {
-      /* pushStyle();
-       fill(#FAC903);
-       triangle(-30, 40, -15, 10, -15, 30 );
-       popStyle();*/
-
-      pushMatrix();
-      //scale(0.1,0.1);
-      image(leftimg, -45, 70);
-      popMatrix();
+      if (frameCount%thrustFramedistance==0) {
+        Thrust t = new Thrust();
+        t.speed.rotate(PI/4);
+        t.position.set(-15, 75);
+        t.tWidth=30;
+        t.tHeight=10;
+        thrustrings.add(t);
+      }
     }
 
     if (leftthrust) {
-      /*pushStyle();
-       fill(#FAC903);
-       triangle(30, 40, 15, 10, 15, 30 );
-       popStyle();*/
-
-      pushMatrix();
-      //scale(0.1,0.1);
-      image(rightimg, 25, 70);
-      popMatrix();
+      if (frameCount%thrustFramedistance==0) {
+        Thrust t = new Thrust();
+        t.speed.rotate(-PI/4);
+        t.position.set(15, 75);
+        t.tWidth=30;
+        t.tHeight=10;
+        thrustrings.add(t);
+      }
     }
 
 
@@ -278,7 +280,6 @@ class CustomShape {
   void setThrust(boolean _thrust, int _thrustforce) {
     thrust=_thrust;
     thrustforce=_thrustforce;
- 
   }
 
   void setLeftThrust(boolean _thrust) {
@@ -316,6 +317,12 @@ class CustomShape {
     if (pos.x>(width/2-15) &&pos.x<(width/2+15)) {
       Vec2 velocity = body.getLinearVelocity();
       float speed = velocity.length();
+      println("++++++++++++++"+speed);
+      if (speed<MAXLANDSPEED) {
+        changeGameState(LANDED);
+      } else {
+        changeGameState(CRASHED);
+      }
     }
   }
 
