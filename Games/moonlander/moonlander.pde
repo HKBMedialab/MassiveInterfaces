@@ -99,7 +99,7 @@ float val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=false;
+boolean bUseArduino=true;
 
 
 
@@ -169,7 +169,7 @@ void setup() {
   // Arduino stuff
   println(Serial.list());
   String portName = Serial.list()[3];
-  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 115200 );
+  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1421", 9600 );
   if (bUseArduino) myPort.bufferUntil(lf);
 
   // pixelDensity(2);
@@ -186,14 +186,16 @@ void setup() {
 
   /* start oscP5, listening for incoming messages at port 8000 */
   oscP5 = new OscP5(this, 8000);
-  myRemoteLocation = new NetAddress("127.0.0.1 ", 8000);
+ // myRemoteLocation = new NetAddress("127.0.0.1 ", 8000);
+    myRemoteLocation = new NetAddress("127.0.0.1 ", 8000);
+
   //loadSettings(myRemoteLocation);
 
   // Sound
   minim = new Minim(this);
   ambisound = minim.loadFile("sounds/Game Ambient.mp3");
   ambisound.loop();  
-  boostsound = minim.loadFile("sounds/boost.aifc", 16);
+  boostsound = minim.loadFile("sounds/boost.mp3");
   //  hitsound = minim.loadFile("sounds/Hit.aif",16);
 }
 
@@ -213,8 +215,8 @@ float debugval;
 void draw() {
 
   //debugval=lerp(debugval,random(100, 200),0.05);
-  debugval=random(100, 200);
-  plotterA0.addValue(debugval);
+ // debugval=random(100, 200);
+  plotterA0.addValue(val);
   plotterA0.update();
 
 
@@ -338,7 +340,8 @@ void keyPressed() {
     for (CustomShape cs : polygons) {
       cs.setThrust(true, 2000);
     }
-    boostsound.play();
+    if(!boostsound.isPlaying()){
+    boostsound.play();}
     break;
 
   case 'a':
@@ -482,9 +485,9 @@ void serialEvent(Serial p) {
     String[] sensordata = split(message, ',');
     println(sensordata);
 
-    trampolinval =float(sensordata[0]);
+  //  trampolinval =float(sensordata[0]);
 
-    val=constrain(trampolinval, 0, 22);
+  //  val=constrain(trampolinval, 0, 22);
 
 
     //println(trampolinval);
@@ -499,13 +502,13 @@ void serialEvent(Serial p) {
 
     scaledInval=floor(map(val, 0, 19, MAXTHRUSTFORCE, 0));
 
-    if (scaledInval>4) {
+  /*  if (scaledInval>4) {
       for (CustomShape cs : polygons) {
         cs.setThrust(true, int(scaledInval*500));
       }
     } 
-
-
+*/
+/*
     steerval=lerp(steerval, float(sensordata[1]), 0.1);
     CustomShape cs = polygons.get(0);
 
@@ -521,7 +524,7 @@ void serialEvent(Serial p) {
       println("left", steerval);
     } else {
       cs.leftthrust=false;
-    }
+    }*/
   } 
   catch (Exception e) {
     println("Initialization exception");
