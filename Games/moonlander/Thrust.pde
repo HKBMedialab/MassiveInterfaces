@@ -1,6 +1,6 @@
 class Thrust {
 
-  PVector position=new PVector (0, 80);
+  PVector position=new PVector (0, 60);
   PVector speed=new PVector (0, 4);
 
   float tWidth=60;

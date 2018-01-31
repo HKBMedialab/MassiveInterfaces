@@ -5,8 +5,8 @@ class Plotter {
 
   ArrayList<PVector> PVal = new ArrayList<PVector>();
   ArrayList<PVector> peaks = new ArrayList<PVector>();
-  int peaktrigger= 200;
-  int minpeaktrigger=125;
+  int peaktrigger= 500;
+  int minpeaktrigger=0;
 
   int maxlength=100;
   int stretch=3;
@@ -27,8 +27,8 @@ class Plotter {
 
   void update() {
 
-   pushMatrix();
-    translate(0, debugtranslateY);
+    pushMatrix();
+    // translate(0, debugtranslateY);
     for (int i=0; i<positions.size(); i++) {
       float position=positions.get(i);
       position=position-stretch;
@@ -40,15 +40,15 @@ class Plotter {
       position.x=position.x-stretch;
       PVal.set(i, new PVector(position.x, position.y));
     }
-
+    /*
     for (int i=0; i<peaks.size(); i++) {
-      PVector position=peaks.get(i);
-      position.x=position.x-stretch;
-      peaks.set(i, new PVector(position.x, position.y));
-      rect(position.x, position.y, 5, 5);
-      text(position.y, position.x, position.y);
-    }
-
+     PVector position=peaks.get(i);
+     position.x=position.x-stretch;
+     peaks.set(i, new PVector(position.x, position.y));
+     rect(position.x, position.y, 5, 5);
+     text(position.y, position.x, position.y);
+     }
+     */
 
     // cycle
     if (values.size()>maxlength)values.remove(0);
@@ -59,8 +59,8 @@ class Plotter {
 
     pushStyle();
     stroke(255, 0, 0);
-    line(0, peaktrigger, width, peaktrigger);
-    line(0, minpeaktrigger, width, minpeaktrigger);
+    //line(0, peaktrigger, width, peaktrigger);
+    //line(0, minpeaktrigger, width, minpeaktrigger);
 
     popStyle();
     popMatrix();
@@ -74,7 +74,6 @@ class Plotter {
     int pos=0;
     for (int i=1; i<values.size(); i++) {
       line(pos-stretch, values.get(i-1), pos, values.get(i));
-      //text(int(values.get(i)),pos-10,values.get(i));
       pos+=stretch;
     }
     text(values.get(values.size()-1), pos, 0);
@@ -84,28 +83,38 @@ class Plotter {
 
   void plott(float _inMin, float _inMax, float _min, float _max) {
     pushMatrix();
-    translate(0, debugtranslateY);
+    //translate(0, debugtranslateY);
     line(0, 0, width, 0);
     int pos=0;
     for (int i=1; i<values.size(); i++) {
       float position=positions.get(i);
       float positionB=positions.get(i-1);
 
-
       PVector positionPPVal=PVal.get(i);
       PVector positionBPVal=PVal.get(i-1);
 
-      float val=map(values.get(i-1), _inMin, _inMax, _min, _max);
-      float val2=map(values.get(i), _inMin, _inMax, _min, _max);
+      float val=map(positionBPVal.y, _inMin, _inMax, _min, _max);
+      float val2=map(positionPPVal.y, _inMin, _inMax, _min, _max);
 
-
-      // line(positionB, val, position, val2);
-      // stroke(255, 0, 0);
-      line(positionPPVal.x, positionPPVal.y, positionBPVal.x, positionBPVal.y);
-
-      //text(int(values.get(i)),pos-10,values.get(i));
+      line(positionPPVal.x, val2, positionBPVal.x, val);
       pos+=stretch;
     }
+
+    for (int i=0; i<peaks.size(); i++) {
+      PVector position=peaks.get(i);
+      position.x=position.x-stretch;
+      peaks.set(i, new PVector(position.x, position.y));
+      float peakY=map(position.y, _inMin, _inMax, _min, _max);
+      rect(position.x, peakY, 5, 5);
+      fill(0);
+      text(position.y, position.x, peakY);
+    }
+
+    float peakTY=map(peaktrigger, _inMin, _inMax, _min, _max);
+    float minpeakTY=map(minpeaktrigger, _inMin, _inMax, _min, _max);
+    line(0, peakTY, width, peakTY);
+    line(0, minpeakTY, width, minpeakTY);
+    fill(0);
     text(values.get(values.size()-1), positions.get(positions.size()-1), _max);
     popMatrix();
   }

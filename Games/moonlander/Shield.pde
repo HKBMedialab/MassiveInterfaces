@@ -54,9 +54,6 @@ class Shield {
     sHeight=_h;
   }
 
-
-
-
   void setShieldActive(boolean _active) {
     bIsActive=_active;
     if(bIsActive)energycounter=startenergy;

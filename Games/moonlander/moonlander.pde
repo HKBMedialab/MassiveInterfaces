@@ -34,7 +34,7 @@ float DAMPING = 1;
 
 
 // SPACESHIP
-float DENSITY = 0.6;
+float DENSITY = 0.25;
 float MAXSPEED=200;
 float IMPULSE=10;
 float MAXTHRUSTFORCE=8;
@@ -102,13 +102,39 @@ int [] mysensors= new int[2];
 boolean bUseArduino=true;
 
 
+float val1=0;
+float val2=0;      // Data received from the serial port
+float val3=0;      // Data received from the serial port
+float lerpval=0.3;
+
+float lerpdval1=0;
+float lerpdval2=0;      // Data received from the serial port
+float lerpdval3=0;      // Data received from the serial port
+
+float leftTriggerVal=300;
+float rightTriggerVal=700;
 
 
 // design
+PImage background_0;
+PImage background_1_planet1;
+PImage background_2_planet2;
+PImage background_3_planet3;
+PImage background_4;
+
+PImage test_landscape;
+
+
 PImage background;
 PImage background_back;
 
 
+PVector planet1=new PVector(0, 0);
+PVector planet2=new PVector(0, 0);
+PVector planet3=new PVector(0, 0);
+PVector planet1_speed=new PVector(0, 0);
+PVector planet2_speed=new PVector(0, 0);
+PVector planet3_speed=new PVector(0, 0);
 
 import oscP5.*;
 import netP5.*;
@@ -131,8 +157,8 @@ AudioPlayer hitsound;
 
 
 void setup() {
-  size(1920, 1080);
-  // size(1500, 1080);
+  //size(1920, 1080);
+  size(1500, 1080);
 
   frameRate(30);
   //fullScreen();
@@ -169,7 +195,7 @@ void setup() {
   // Arduino stuff
   println(Serial.list());
   String portName = Serial.list()[3];
-  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1421", 9600 );
+  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 9600 );
   if (bUseArduino) myPort.bufferUntil(lf);
 
   // pixelDensity(2);
@@ -179,15 +205,32 @@ void setup() {
   plotterA1=new Plotter();
   plotterA2=new Plotter();
 
+  //leftTriggerVal=map(leftTriggerVal, 0, 1025, 0, pH);
+  //rightTriggerVal=map(rightTriggerVal, 0, 1025, 0, pH);
+
+  println("+++++++++rightTriggerVal++++++++++++"+rightTriggerVal);
+  println("+++++++++++leftTriggerVal++++++++++"+leftTriggerVal);
+
+
 
   background_back = loadImage("backgrounds/test_bg.png");
   background = loadImage("backgrounds/test_landscape.png");
+  println("bWidth "+background.width);
+
+
+  background_0= loadImage("backgrounds/background_0.png");
+  background_1_planet1= loadImage("backgrounds/background_1_planet1.png");
+  background_2_planet2= loadImage("backgrounds/background_2_planet2.png");
+  background_3_planet3= loadImage("backgrounds/background_3_planet3.png");
+  background_4= loadImage("backgrounds/background_4.png");
+
+  test_landscape= loadImage("backgrounds/test_landscape.png");
 
 
   /* start oscP5, listening for incoming messages at port 8000 */
   oscP5 = new OscP5(this, 8000);
- // myRemoteLocation = new NetAddress("127.0.0.1 ", 8000);
-    myRemoteLocation = new NetAddress("127.0.0.1 ", 8000);
+  // myRemoteLocation = new NetAddress("127.0.0.1 ", 8000);
+  myRemoteLocation = new NetAddress("127.0.0.1 ", 8000);
 
   //loadSettings(myRemoteLocation);
 
@@ -214,18 +257,37 @@ void setTocuosc(NetAddress _remoteLocation, String adress, float value) {
 float debugval;
 void draw() {
 
-  //debugval=lerp(debugval,random(100, 200),0.05);
- // debugval=random(100, 200);
-  plotterA0.addValue(val);
-  plotterA0.update();
 
 
 
   background(0);
-  image(background_back, 0, 0);
-  image(background, 0, 0);
+  //  image(background_back, 0, 0);
+  //  image(background, 0, 0);
+
+  image(background_0, 0, 0);
+  pushMatrix();
+  translate(planet1.x, planet1.y);
+  image(background_1_planet1, 0, 0);  
+  popMatrix();
+  pushMatrix();
+  translate(planet2.x, planet2.y);
+  image(background_2_planet2, 0, 0);
+  popMatrix();
+  pushMatrix();
+  translate(planet3.x, planet3.y);
+  image(background_3_planet3, 0, 0);
+  popMatrix();
 
 
+  image(background_4, 0, 0);
+  image(test_landscape, 0, 0);
+
+  planet1.add(planet1_speed);
+  if (planet1.x>width)planet1.x=-background_1_planet1.width;
+  planet2.add(planet2_speed);
+  if (planet2.x>width)planet1.x=-background_2_planet2.width;
+  planet3.add(planet3_speed);
+  if (planet3.x>width)planet1.x=-background_3_planet3.width;
 
 
 
@@ -265,22 +327,70 @@ void draw() {
   }
 
 
-
+  /*
   pushMatrix();
-  translate(0, 100);
-  stroke(255, 255, 255);
-  strokeWeight(1);
-  //plotterA0.plott(0, 200, 0, pH);
-  
-  plotterA0.plottScale();
-  stroke(200, 255, 255);
-  line(0, 0, width, 0);
-  stroke(100, 255, 255);
+   translate(0, 0);
+   stroke(255, 255, 255);
+   strokeWeight(1);
+   //plotterA0.plott(0, 200, 0, pH);
+   
+   plotterA0.plottScale();
+   stroke(200, 255, 255);
+   line(0, 0, width, 0);
+   stroke(100, 255, 255);
+   popMatrix();
+   */
+
+
+  plotterA0.addValue(val1);
+  plotterA0.update();
+
+  plotterA1.addValue(val2);
+  plotterA1.update();
+
+  plotterA2.addValue(val3);
+  plotterA2.update();
+
+
+
+
+  float mleftTriggerVal=map(leftTriggerVal, 0, 1025, 0, pH);
+  float mrightTriggerVal=map(rightTriggerVal, 0, 1025, 0, pH);
+
+  colorMode(RGB);
+  rectMode(CORNER);
+  blendMode(BLEND);
+  pushMatrix();
+  translate(0, 0);
+  fill(255, 0, 0, 100);
+  rect(0, 0, width, pH);
+  stroke(255, 0, 0, 200);
+  line(0, mleftTriggerVal, width, mleftTriggerVal);
+  stroke(0, 0, 255, 200);
+  line(0, mrightTriggerVal, width, mrightTriggerVal);
+  plotterA0.plott(0, 300, 0, pH);
+  translate(0, pH);
+  fill(0, 255, 0, 100);
+  rect(0, 0, width, pH);
+  stroke(255, 0, 0, 200);
+  line(0, mleftTriggerVal, width, mleftTriggerVal);
+  stroke(0, 0, 255, 200);
+  line(0, mrightTriggerVal, width, mrightTriggerVal);
+  plotterA1.plott(0, 1025, 0, pH);
+
+  translate(0, pH);
+  fill(0, 0, 255, 100);
+  rect(0, 0, width, pH);
+  stroke(255, 0, 0, 100);
+  line(0, mleftTriggerVal, width, mleftTriggerVal);
+  stroke(0, 0, 255, 100);
+  line(0, mrightTriggerVal, width, mrightTriggerVal);
+  plotterA2.plott(0, 1025, 0, pH);
   popMatrix();
 
+  colorMode(HSB);
 
-
-
+  rectMode(CENTER);
 
   /*
   plotterA0.addValue(trampolinval);
@@ -340,8 +450,9 @@ void keyPressed() {
     for (CustomShape cs : polygons) {
       cs.setThrust(true, 2000);
     }
-    if(!boostsound.isPlaying()){
-    boostsound.play();}
+    if (!boostsound.isPlaying()) {
+      boostsound.play();
+    }
     break;
 
   case 'a':
@@ -483,48 +594,56 @@ void serialEvent(Serial p) {
     message = trim(message);
 
     String[] sensordata = split(message, ',');
-    println(sensordata);
 
-  //  trampolinval =float(sensordata[0]);
+    //val=float(sensordata[0]);
 
-  //  val=constrain(trampolinval, 0, 22);
-
-
-    //println(trampolinval);
-    /* val=inval;
-     val=constrain(inval, 0, 250);
-     */
-    //trampolinval=inval;
-
-    // if (trampolinval<minVal)minVal=trampolinval;
-    //if (trampolinval>maxVal)maxVal=trampolinval;
+    float inval1 =float(sensordata[0]);
+    float inval2 =float(sensordata[1]);
 
 
-    scaledInval=floor(map(val, 0, 19, MAXTHRUSTFORCE, 0));
+lerpval=0.05;
 
-  /*  if (scaledInval>4) {
-      for (CustomShape cs : polygons) {
-        cs.setThrust(true, int(scaledInval*500));
-      }
-    } 
-*/
-/*
-    steerval=lerp(steerval, float(sensordata[1]), 0.1);
-    CustomShape cs = polygons.get(0);
+    lerpdval1=lerp(lerpdval1, inval1, lerpval);
+    lerpdval2=lerp(lerpdval2, inval1, lerpval);
 
-    if (steerval<rightSteer) {
-      cs.rightthrust=true;
-      println("right", steerval);
-    } else {
-      cs.rightthrust=false;
+
+
+    if (inval1>0) {
+      float mappedinval1=map(lerpdval1, 200, 600, 0, 600);
+      float mappedinvalPowInv=mapPowInv(3, lerpdval1, 200, 600, 0, 600);
+      float mappedinvalPow=mapPow(0.1, lerpdval1, 200, 600, 0, 600);
+
+    println(lerpdval1);
+
+val1=mappedinval1;
+val2=mappedinvalPowInv;
+val3=mappedinvalPow;
+
+      //val1=lerp(val1, mappedinval1, lerpval);
+      //val2=lerp(val2, mappedinvalPowInv, lerpval);
+      //val3=lerp(val3, mappedinvalPow, lerpval);
     }
 
-    if (steerval>leftSteer) {
-      cs.leftthrust=true;
-      println("left", steerval);
+    if (inval2>0) {
+      // float mappedinval2=map(inval2, 0, 300, 0, 1025);
+      // val3=lerp(val3, mappedinval2, lerpval);
+    }
+
+
+
+    CustomShape player0 =polygons.get(0);
+
+    if (val1<leftTriggerVal) {
+      player0.leftthrust=true;
     } else {
-      cs.leftthrust=false;
-    }*/
+      player0.leftthrust=false;
+    }
+
+    if (val1>rightTriggerVal) {
+      player0.rightthrust=true;
+    } else {
+      player0.rightthrust=false;
+    }
   } 
   catch (Exception e) {
     println("Initialization exception");
@@ -737,4 +856,18 @@ void saveSettings() {
   parameters.setFloat("Impulse", IMPULSE);
   parameters.setFloat("Maxthrustforce", MAXTHRUSTFORCE);
   saveJSONObject(parameters, "data/settings.json");
+}
+
+
+float mapPowInv(float pow, float value, float start1, float stop1, float start2, float stop2) {
+  float inT = norm(value, start1, stop1);
+  float outT = 1-(pow((1-inT), pow));
+  return map(outT, 0, 1, start2, stop2);
+}
+
+
+float mapPow(float pow, float value, float start1, float stop1, float start2, float stop2) {
+  float inT = norm(value, start1, stop1);
+  float outT = pow(inT, pow);
+  return map(outT, 0, 1, start2, stop2);
 }

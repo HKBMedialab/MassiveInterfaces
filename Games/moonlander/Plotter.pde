@@ -5,21 +5,14 @@ class Plotter {
 
   ArrayList<PVector> PVal = new ArrayList<PVector>();
   ArrayList<PVector> peaks = new ArrayList<PVector>();
-  int peaktrigger= 10;
-  int minpeaktrigger=10;
+  int peaktrigger= 500;
+  int minpeaktrigger=0;
 
   int maxlength=100;
   int stretch=3;
   int leftpadding=20;
   int rightpadding=20;
-  int debugtranslateY=0;
-
-  float average=0;
-  float minVal=1000;
-  float maxVal=0;
-
-
-
+  int debugtranslateY=50;
 
   Plotter() {
     maxlength=(width-leftpadding-rightpadding)/stretch;
@@ -35,45 +28,41 @@ class Plotter {
   void update() {
 
     pushMatrix();
-    translate(0, debugtranslateY);
+    // translate(0, debugtranslateY);
     for (int i=0; i<positions.size(); i++) {
       float position=positions.get(i);
       position=position-stretch;
       positions.set(i, position);
     }
 
-    average=0;
     for (int i=0; i<PVal.size(); i++) {
       PVector position=PVal.get(i);
       position.x=position.x-stretch;
       PVal.set(i, new PVector(position.x, position.y));
-      if (position.y<minVal)minVal=position.y;
-      if (position.y>maxVal)maxVal=position.y;
-
-      average+= position.y;
     }
-    average/=PVal.size();
-
+    /*
     for (int i=0; i<peaks.size(); i++) {
-      PVector position=peaks.get(i);
-      position.x=position.x-stretch;
-      peaks.set(i, new PVector(position.x, position.y));
-      rect(position.x, position.y, 5, 5);
-      text(position.y, position.x, position.y);
-    }
-
+     PVector position=peaks.get(i);
+     position.x=position.x-stretch;
+     peaks.set(i, new PVector(position.x, position.y));
+     rect(position.x, position.y, 5, 5);
+     text(position.y, position.x, position.y);
+     }
+     */
 
     // cycle
     if (values.size()>maxlength)values.remove(0);
     if (positions.size()>maxlength)positions.remove(0);
+    if (positions.size()>maxlength)positions.remove(0);
     if (PVal.size()>maxlength)PVal.remove(0);
-        if (peaks.size()>maxlength)peaks.remove(0);
-
-    
-    
 
 
+    pushStyle();
+    stroke(255, 0, 0);
+    //line(0, peaktrigger, width, peaktrigger);
+    //line(0, minpeaktrigger, width, minpeaktrigger);
 
+    popStyle();
     popMatrix();
 
     // text(positions.size(), 100, 100);
@@ -85,7 +74,6 @@ class Plotter {
     int pos=0;
     for (int i=1; i<values.size(); i++) {
       line(pos-stretch, values.get(i-1), pos, values.get(i));
-      //text(int(values.get(i)),pos-10,values.get(i));
       pos+=stretch;
     }
     text(values.get(values.size()-1), pos, 0);
@@ -93,90 +81,42 @@ class Plotter {
 
 
 
-
-
-
-
-
   void plott(float _inMin, float _inMax, float _min, float _max) {
     pushMatrix();
-    translate(0, debugtranslateY);
+    //translate(0, debugtranslateY);
     line(0, 0, width, 0);
+    int pos=0;
     for (int i=1; i<values.size(); i++) {
+      float position=positions.get(i);
+      float positionB=positions.get(i-1);
+
       PVector positionPPVal=PVal.get(i);
       PVector positionBPVal=PVal.get(i-1);
-      float val1=map(positionPPVal.y, _inMin, _inMax, _min, _max);
-      float val2=map(positionBPVal.y, _inMin, _inMax, _min, _max);
-      line(positionPPVal.x, val1, positionBPVal.x, val2);
+
+      float val=map(positionBPVal.y, _inMin, _inMax, _min, _max);
+      float val2=map(positionPPVal.y, _inMin, _inMax, _min, _max);
+      fill(255);
+      stroke(255);
+      line(positionPPVal.x, val2, positionBPVal.x, val);
+      pos+=stretch;
     }
-
-
-    line(0, map(average, _inMin, _inMax, _min, _max), width, map(average, _inMin, _inMax, _min, _max));
-    text("Average "+average, 0, map(average, _inMin, _inMax, _min, _max));
-
-    stroke(50, 255, 255);
-    line(0, map(minVal, _inMin, _inMax, _min, _max), width, map(minVal, _inMin, _inMax, _min, _max));
-    text("min "+minVal, 0, map(minVal, _inMin, _inMax, _min, _max));
-
-    stroke(150, 255, 255);
-    line(0, map(maxVal, _inMin, _inMax, _min, _max), width, map(maxVal, _inMin, _inMax, _min, _max));
-    text("max "+maxVal, 0, map(maxVal, _inMin, _inMax, _min, _max));
-
-
-    pushStyle();
-    stroke(100, 255, 255, 200);
-    line(0, map(average, _inMin, _inMax, _min, _max)+map(peaktrigger, _inMin, _inMax, _min, _max), width, map(average, _inMin, _inMax, _min, _max)+ map(peaktrigger, _inMin, _inMax, _min, _max));
-    line(0, map(average, _inMin, _inMax, _min, _max)-peaktrigger, width, map(average, _inMin, _inMax, _min, _max)-peaktrigger);
-    popStyle();
-
-
 
     for (int i=0; i<peaks.size(); i++) {
       PVector position=peaks.get(i);
-      noStroke();
-      rect(position.x, position.y, 5, 5);
-      text(position.y, position.x, position.y);
+      position.x=position.x-stretch;
+      peaks.set(i, new PVector(position.x, position.y));
+      float peakY=map(position.y, _inMin, _inMax, _min, _max);
+      rect(position.x, peakY, 5, 5);
+      fill(255);
+      text(position.y, position.x, peakY);
     }
 
-
-
+    float peakTY=map(peaktrigger, _inMin, _inMax, _min, _max);
+    float minpeakTY=map(minpeaktrigger, _inMin, _inMax, _min, _max);
+    line(0, peakTY, width, peakTY);
+    line(0, minpeakTY, width, minpeakTY);
+    fill(255);
     text(values.get(values.size()-1), positions.get(positions.size()-1), _max);
-    popMatrix();
-  }
-  
-  void plottScale() {
-    pushMatrix();
-    line(0, 0, width, 0);
-    for (int i=1; i<values.size(); i++) {
-      PVector positionPPVal=PVal.get(i);
-      PVector positionBPVal=PVal.get(i-1);
-      line(positionPPVal.x, positionPPVal.y, positionBPVal.x, positionBPVal.y);
-    }
-
-
-    line(0, average, width, average);
-    text("Average "+average, 0, average);
-
-    stroke(50, 255, 255);
-    line(0, minVal, width, minVal);
-    text("min "+minVal, 0,minVal);
-
-    stroke(150, 255, 255);
-    line(0, maxVal, width, maxVal);
-    text("max "+maxVal, 0, maxVal);
-
-    pushStyle();
-    stroke(100, 255, 255, 200);
-    line(0, average+peaktrigger, width, average+peaktrigger);
-    line(0, average-peaktrigger, width, average-peaktrigger);
-    popStyle();
-
-    for (int i=0; i<peaks.size(); i++) {
-      PVector position=peaks.get(i);
-      noStroke();
-      rect(position.x, position.y, 5, 5);
-      text(position.y, position.x, position.y);
-    }
     popMatrix();
   }
 
@@ -189,15 +129,15 @@ class Plotter {
   }
 
   void addValue(float _val) {
-    if (values.size()>4) {
+    if (values.size()>2) {
       float val1=values.get(values.size()-2);
       float val2=values.get(values.size()-1);
-      //println("Valu2 "+_val+" average+peaktrigger "+(average+peaktrigger)+" average "+average+" peaktrigger "+peaktrigger);
-      if (val2>=val1 && _val<=val2 && _val>average+peaktrigger) {
+
+      if (val2>val1 && _val<val2 && _val>peaktrigger) {
         peaks.add(new PVector(float(width-rightpadding-stretch), val2));
       }
 
-      if (val2<val1 && _val>val2 && _val<average-peaktrigger) {
+      if (val2<val1 && _val>val2 && _val<minpeaktrigger) {
         peaks.add(new PVector(float(width-rightpadding-stretch), val2));
       }
     }
