@@ -36,13 +36,21 @@ class CustomShape {
   PImage leftimg;
   PImage rightimg;
 
+  int id;
+
+
+  Vec2 posBefore; 
+  Vec2 velocityBefore;
+  boolean resetPosition=false;
+
   PApplet sketchRef;
 
   // We need to keep track of a Body and a width and height
   Body body;
 
   // Constructor
-  CustomShape(PApplet pa, float x, float y) {
+  CustomShape(PApplet pa, float x, float y, int _id) {
+    id=_id;
     sketchRef=pa;
     // Add the box to the box2d world
     makeBody(new Vec2(x, y));
@@ -93,8 +101,9 @@ class CustomShape {
 
   // Drawing the box
   void display() {
-    if (changeType)changeBodytype();
-    shield.update();
+    if (changeType)changeBodyType();
+    if (resetPosition)resetPosition();
+    shield.update(box2d.getBodyPixelCoord(body));
 
     body.setLinearDamping(DAMPING);
 
@@ -172,23 +181,22 @@ class CustomShape {
     colorMode(RGB);
 
 
-    blendMode(SCREEN);
-
+    // blendMode(SCREEN);
     tint(200, 0, 0, 210);
-    image(shipglow2, -shipglow2.width/2, -shipglow2.height/2);
+    // image(shipglow2, -shipglow2.width/2, -shipglow2.height/2);
+    //noTint();
     tint(200, 0, 0, 220);
-
     image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
+    noTint();
     tint(200, 0, 0, 255);
+    // image(shipglow3, -shipglow3.width/2, -shipglow3.height/2);
+    //blendMode(BLEND);
 
-    image(shipglow3, -shipglow3.width/2, -shipglow3.height/2);
-
-    blendMode(BLEND);
-
-    tint(0);
+    tint(col);
     image(ship, -ship.width/2, -ship.height/2);
-    tint(255);
-    colorMode(HSB);
+    noTint();
+    //tint(255);
+    // colorMode(HSB);
 
     popMatrix();
 
@@ -397,7 +405,7 @@ class CustomShape {
   void setShieldActive(boolean _active) {
     shield.setShieldActive(_active);
     if (_active==true) {
-      changeType=true;
+      //changeType=true;
       setRestitution(0);
     } else {
       setRestitution(RESTITUTION);
@@ -406,6 +414,7 @@ class CustomShape {
 
   // Change color when hit
   void hitSurface() {
+
     Vec2 pos = box2d.getBodyPixelCoord(body);
     if (pos.x>(width/2-15) &&pos.x<(width/2+15)) {
       Vec2 velocity = body.getLinearVelocity();
@@ -419,10 +428,90 @@ class CustomShape {
     }
   }
 
-  void changeBodytype() {
-    //body.setType(BodyType.KINEMATIC);
-    Fixture f = body.getFixtureList();
-    f.setRestitution(0);
+
+  void hitShip() {
+    velocityBefore=new Vec2(body.getLinearVelocity().x, body.getLinearVelocity().y);
+    println(id +" hit ship "+body.getLinearVelocity());
+
+    /*if (shield.getShieldIsActive()) {
+      Fixture f = body.getFixtureList();
+      f.setRestitution(-10);
+      //changeType=true;
+    }*/
+  }
+
+
+
+  void hitShipPresolve() {
+
+    //println("hit ship presolve");
+    println(id+ " hit ship presolve"+body.getLinearVelocity());
+
+    //velocityBefore=body.getLinearVelocity();
+    //body.setType(BodyType.STATIC);
+
+    if (shield.getShieldIsActive()) {
+      //body.setType(BodyType.STATIC);
+      // changeType=true;
+      Fixture f = body.getFixtureList();
+      f.setRestitution(10);
+    }
+  }
+
+  void hitShipPostsolve() {
+    println(id+ " hit ship postsolve"+body.getLinearVelocity()+" before"+velocityBefore);
+    if (shield.getShieldIsActive()) {
+      body.setLinearVelocity(new Vec2(0, 0));
+      Fixture f = body.getFixtureList();
+      f.setRestitution(RESTITUTION);
+      f.setDensity(DENSITY);
+    }
+  }
+
+
+
+  void hitShipEnd() {
+    //println("hit ship end ");
+    println(id+ " hit ship end"+body.getLinearVelocity());
+
+    /* if (shield.getShieldIsActive()) {
+     body.setLinearVelocity(velocityBefore);
+     }*/
+    //body.setActive(true);
+
+
+    /*if (body.getType()==BodyType.STATIC) {
+     body.setType(BodyType.DYNAMIC);
+     //body.setLinearVelocity(new Vec2(0, 0));
+     // resetPosition=true;
+     }*/
+    /*
+    if (body.getType()==BodyType.STATIC) {
+     changeType=true;
+     }
+     
+     if (shield.getShieldIsActive()) {
+     //   resetPosition=true;
+     //body.setTransform(posBefore, 0);
+     // body.setLinearVelocity(velocityBefore);
+     // body.setType(BodyType.STATIC);
+     }*/
+  }
+
+  void resetPosition() {
+    //body.setTransform(posBefore, 0);
+    body.setLinearVelocity(new Vec2(0, 0));
+    resetPosition=false;
+  }
+
+  void changeBodyType() {
+    if (body.getType()==BodyType.DYNAMIC) {
+      body.setType(BodyType.STATIC);
+    } else {
+      body.setType(BodyType.DYNAMIC);
+    }
+    //Fixture f = body.getFixtureList();
+    //f.setRestitution(0);
     changeType=false;
   }
 
@@ -430,6 +519,11 @@ class CustomShape {
     //body.setType(BodyType.KINEMATIC);
     Fixture f = body.getFixtureList();
     f.setRestitution(0);
+  }
+
+
+  boolean getShieldIsActive() {
+    return shield.getShieldIsActive();
   }
 
   void setRestitution(float res) {
@@ -440,6 +534,11 @@ class CustomShape {
 
   // Change color when hit
   void endContact() {
-    col = color(175);
+   // col = color(175);
   }
+  
+  void setColor(int _col){
+  col=_col;
+  }
+  
 }

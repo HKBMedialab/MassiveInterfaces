@@ -8,6 +8,14 @@ import org.jbox2d.collision.shapes.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.*;
 import org.jbox2d.dynamics.contacts.*;
+import org.jbox2d.dynamics.Body;
+import org.jbox2d.dynamics.BodyDef;
+import org.jbox2d.dynamics.BodyType;
+
+import org.jbox2d.callbacks.ContactImpulse;
+import org.jbox2d.callbacks.ContactListener;
+import org.jbox2d.collision.Manifold;
+import org.jbox2d.dynamics.contacts.Contact;
 
 
 import geomerative.*;
@@ -48,8 +56,10 @@ final int MAXLANDSPEED=20;
 final int PLAYING = 100;
 final int LANDED = 101;
 final int CRASHED = 102;
+final int STARTSCREEN = 99;
 
-int gamestate=PLAYING;
+
+int gamestate=STARTSCREEN;
 
 
 // SENSORVALUES
@@ -86,6 +96,7 @@ ArrayList<CustomShape> polygons;
 Plotter plotterA0; 
 Plotter plotterA1; 
 Plotter plotterA2; 
+boolean renderPlotter=false;
 
 // style
 float pH=255;
@@ -99,7 +110,7 @@ float val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=true;
+boolean bUseArduino=false;
 
 
 float val1=0;
@@ -111,8 +122,8 @@ float lerpdval1=0;
 float lerpdval2=0;      // Data received from the serial port
 float lerpdval3=0;      // Data received from the serial port
 
-float leftTriggerVal=300;
-float rightTriggerVal=700;
+float leftTriggerVal=200;
+float rightTriggerVal=500;
 
 
 // design
@@ -154,11 +165,23 @@ AudioPlayer ambisound;
 AudioPlayer boostsound;
 AudioPlayer hitsound;
 
+CustomShape player1;
+CustomShape player2; 
+
+
+
+PGraphics combinedbackground;
+
+
+
+
+
+
 
 
 void setup() {
-  //size(1920, 1080);
-  size(1500, 1080);
+  size(1920, 1080);
+  // size(1500, 1080);
 
   frameRate(30);
   //fullScreen();
@@ -178,13 +201,17 @@ void setup() {
   box2d.listenForCollisions();
 
 
-
-
   polygons = new ArrayList<CustomShape>();
-  CustomShape cs = new CustomShape(this, 20, 500);
+  CustomShape cs = new CustomShape(this, 20, 500, 1);
+  polygons.add(cs);
+
+  cs = new CustomShape(this, 200, 100, 2);
   polygons.add(cs);
 
   RG.init(this);
+
+  player1 = polygons.get(0);
+  player2 = polygons.get(1);
 
 
   // Create the surface
@@ -226,6 +253,18 @@ void setup() {
 
   test_landscape= loadImage("backgrounds/test_landscape.png");
 
+  combinedbackground=createGraphics(width, height);
+
+  combinedbackground.beginDraw();
+  combinedbackground.image(background_0, 0, 0);
+  combinedbackground.image(background_1_planet1, 0, 0);
+  combinedbackground.image(background_2_planet2, 0, 0);
+
+  combinedbackground.image(background_3_planet3, 0, 0);
+  combinedbackground.image(background_4, 0, 0);
+
+  combinedbackground.endDraw();
+
 
   /* start oscP5, listening for incoming messages at port 8000 */
   oscP5 = new OscP5(this, 8000);
@@ -237,7 +276,7 @@ void setup() {
   // Sound
   minim = new Minim(this);
   ambisound = minim.loadFile("sounds/Game Ambient.mp3");
-  ambisound.loop();  
+  //ambisound.loop();  
   boostsound = minim.loadFile("sounds/boost.mp3");
   //  hitsound = minim.loadFile("sounds/Hit.aif",16);
 }
@@ -256,40 +295,34 @@ void setTocuosc(NetAddress _remoteLocation, String adress, float value) {
 
 float debugval;
 void draw() {
-
-
-
-
   background(0);
-  //  image(background_back, 0, 0);
-  //  image(background, 0, 0);
-
-  image(background_0, 0, 0);
-  pushMatrix();
-  translate(planet1.x, planet1.y);
-  image(background_1_planet1, 0, 0);  
-  popMatrix();
-  pushMatrix();
-  translate(planet2.x, planet2.y);
-  image(background_2_planet2, 0, 0);
-  popMatrix();
-  pushMatrix();
-  translate(planet3.x, planet3.y);
-  image(background_3_planet3, 0, 0);
-  popMatrix();
 
 
-  image(background_4, 0, 0);
+  /*image(background_0, 0, 0);
+   pushMatrix();
+   translate(planet1.x, planet1.y);
+   image(background_1_planet1, 0, 0);  
+   popMatrix();
+   pushMatrix();
+   translate(planet2.x, planet2.y);
+   image(background_2_planet2, 0, 0);
+   popMatrix();
+   pushMatrix();
+   translate(planet3.x, planet3.y);
+   image(background_3_planet3, 0, 0);
+   popMatrix();
+   image(background_4, 0, 0);*/
+  image(combinedbackground, 0, 0);
   image(test_landscape, 0, 0);
 
-  planet1.add(planet1_speed);
-  if (planet1.x>width)planet1.x=-background_1_planet1.width;
-  planet2.add(planet2_speed);
-  if (planet2.x>width)planet1.x=-background_2_planet2.width;
-  planet3.add(planet3_speed);
-  if (planet3.x>width)planet1.x=-background_3_planet3.width;
-
-
+  /*planet1.add(planet1_speed);
+   if (planet1.x>width)planet1.x=-background_1_planet1.width;
+   planet2.add(planet2_speed);
+   if (planet2.x>width)planet1.x=-background_2_planet2.width;
+   planet3.add(planet3_speed);
+   if (planet3.x>width)planet1.x=-background_3_planet3.width;
+   
+   */
 
   switch(gamestate) {
 
@@ -324,6 +357,13 @@ void draw() {
     text("YOU LOOSE", width/2, height/2);
 
     break;
+
+
+
+
+  case STARTSCREEN:
+    text("START", width/2, height/2);
+    break;
   }
 
 
@@ -353,44 +393,44 @@ void draw() {
 
 
 
+  if (renderPlotter) {
+    float mleftTriggerVal=map(leftTriggerVal, 0, 1025, 0, pH);
+    float mrightTriggerVal=map(rightTriggerVal, 0, 1025, 0, pH);
 
-  float mleftTriggerVal=map(leftTriggerVal, 0, 1025, 0, pH);
-  float mrightTriggerVal=map(rightTriggerVal, 0, 1025, 0, pH);
 
-  colorMode(RGB);
-  rectMode(CORNER);
-  blendMode(BLEND);
-  pushMatrix();
-  translate(0, 0);
-  fill(255, 0, 0, 100);
-  rect(0, 0, width, pH);
-  stroke(255, 0, 0, 200);
-  line(0, mleftTriggerVal, width, mleftTriggerVal);
-  stroke(0, 0, 255, 200);
-  line(0, mrightTriggerVal, width, mrightTriggerVal);
-  plotterA0.plott(0, 300, 0, pH);
-  translate(0, pH);
-  fill(0, 255, 0, 100);
-  rect(0, 0, width, pH);
-  stroke(255, 0, 0, 200);
-  line(0, mleftTriggerVal, width, mleftTriggerVal);
-  stroke(0, 0, 255, 200);
-  line(0, mrightTriggerVal, width, mrightTriggerVal);
-  plotterA1.plott(0, 1025, 0, pH);
+    colorMode(RGB);
+    rectMode(CORNER);
+    blendMode(BLEND);
+    pushMatrix();
+    translate(0, 0);
+    fill(255, 0, 0, 100);
+    rect(0, 0, width, pH);
+    stroke(255, 0, 0, 200);
+    line(0, mleftTriggerVal, width, mleftTriggerVal);
+    stroke(0, 0, 255, 200);
+    line(0, mrightTriggerVal, width, mrightTriggerVal);
+    plotterA0.plott(0, 600, 0, pH);
+    translate(0, pH);
+    fill(0, 255, 0, 100);
+    rect(0, 0, width, pH);
+    stroke(255, 0, 0, 200);
+    line(0, mleftTriggerVal, width, mleftTriggerVal);
+    stroke(0, 0, 255, 200);
+    line(0, mrightTriggerVal, width, mrightTriggerVal);
+    plotterA1.plott(0, 600, 0, pH);
 
-  translate(0, pH);
-  fill(0, 0, 255, 100);
-  rect(0, 0, width, pH);
-  stroke(255, 0, 0, 100);
-  line(0, mleftTriggerVal, width, mleftTriggerVal);
-  stroke(0, 0, 255, 100);
-  line(0, mrightTriggerVal, width, mrightTriggerVal);
-  plotterA2.plott(0, 1025, 0, pH);
-  popMatrix();
-
-  colorMode(HSB);
-
-  rectMode(CENTER);
+    translate(0, pH);
+    fill(0, 0, 255, 100);
+    rect(0, 0, width, pH);
+    stroke(255, 0, 0, 100);
+    line(0, mleftTriggerVal, width, mleftTriggerVal);
+    stroke(0, 0, 255, 100);
+    line(0, mrightTriggerVal, width, mrightTriggerVal);
+    plotterA2.plott(0, 600, 0, pH);
+    popMatrix();
+    colorMode(HSB);
+    rectMode(CENTER);
+  }
 
   /*
   plotterA0.addValue(trampolinval);
@@ -432,42 +472,61 @@ void draw() {
 
 
 void keyPressed() {
-  println("key "+key);
-
   switch(key) {
+
+
   case 's':
-    /* for (CustomShape cs : polygons) {
-     cs.setShieldActive(true);
-     }*/
-
-    CustomShape s = polygons.get(0);
-    s.setShieldActive(true);
-
-
+    player1.setShieldActive(true);
     break;
 
+
+  case 'p':
+    changeGameState(PLAYING);
+    break;
+
+
   case 'w':
-    for (CustomShape cs : polygons) {
-      cs.setThrust(true, 2000);
-    }
+    boostsound.play(0);
+    player1.setThrust(true, 2000);
     if (!boostsound.isPlaying()) {
-      boostsound.play();
     }
     break;
 
   case 'a':
-    for (CustomShape cs : polygons) {
-      cs.leftthrust=true;
-    }
-
+    player1.leftthrust=true;
     break;
 
   case 'd':
-    for (CustomShape cs : polygons) {
-      cs.rightthrust=true;
-    }
-
+    player1.rightthrust=true;
     break;
+
+
+
+  case 'b':
+    player1.changeBodyType();
+    break;
+
+
+  case 'k':
+    player2.setShieldActive(true);
+    break;
+
+  case 'i':
+    boostsound.play(0);
+    player2.setThrust(true, 2000);
+
+    if (!boostsound.isPlaying()) {
+    }
+    break;
+
+  case 'j':
+    player2.leftthrust=true;
+    break;
+
+  case 'l':
+    player2.rightthrust=true;
+    break;
+
 
 
 
@@ -492,7 +551,7 @@ void keyPressed() {
     break;
 
   case 'r':
-    trampolinscalemax=trampolinval-2;
+    changeGameState(PLAYING);
     break;
   }
 }
@@ -502,7 +561,6 @@ void keyPressed() {
 
 
 void keyReleased() {
-  println("release "+key);
 
   switch(key) {
   case 's':
@@ -516,15 +574,37 @@ void keyReleased() {
     break;
 
   case 'a':
-    for (CustomShape cs : polygons) {
-      cs.leftthrust=false;
-    }
+    player1.leftthrust=false;
+
     break;
 
   case 'd':
-    for (CustomShape cs : polygons) {
-      cs.rightthrust=false;
-    }
+    player1.rightthrust=false;
+    break;
+
+
+
+
+
+
+  case 'k':
+    // player2.setShieldActive(true);
+    break;
+
+  case 'i':
+    //boostsound.play(0);
+    // player2.setThrust(true, 2000);
+
+    //if (!boostsound.isPlaying()) {
+    // }
+    break;
+
+  case 'j':
+    player2.leftthrust=false;
+    break;
+
+  case 'l':
+    player2.rightthrust=false;
     break;
   }
 }
@@ -601,7 +681,7 @@ void serialEvent(Serial p) {
     float inval2 =float(sensordata[1]);
 
 
-lerpval=0.05;
+    lerpval=0.05;
 
     lerpdval1=lerp(lerpdval1, inval1, lerpval);
     lerpdval2=lerp(lerpdval2, inval1, lerpval);
@@ -609,15 +689,15 @@ lerpval=0.05;
 
 
     if (inval1>0) {
-      float mappedinval1=map(lerpdval1, 200, 600, 0, 600);
-      float mappedinvalPowInv=mapPowInv(3, lerpdval1, 200, 600, 0, 600);
-      float mappedinvalPow=mapPow(0.1, lerpdval1, 200, 600, 0, 600);
+      float mappedinval1=map(lerpdval1, 200, 700, 0, 600);
+      float mappedinvalPowInv=mapPowInv(3, lerpdval1, 200, 700, 0, 600);
+      float mappedinvalPow=mapPow(0.1, lerpdval1, 200, 700, 0, 600);
 
-    println(lerpdval1);
+      println(lerpdval1+" "+mappedinval1);
 
-val1=mappedinval1;
-val2=mappedinvalPowInv;
-val3=mappedinvalPow;
+      val1=mappedinval1;
+      val2=mappedinvalPowInv;
+      val3=mappedinvalPow;
 
       //val1=lerp(val1, mappedinval1, lerpval);
       //val2=lerp(val2, mappedinvalPowInv, lerpval);
@@ -631,18 +711,18 @@ val3=mappedinvalPow;
 
 
 
-    CustomShape player0 =polygons.get(0);
+    // CustomShape player0 =polygons.get(0);
 
     if (val1<leftTriggerVal) {
-      player0.leftthrust=true;
+      player1.leftthrust=true;
     } else {
-      player0.leftthrust=false;
+      player1.leftthrust=false;
     }
 
     if (val1>rightTriggerVal) {
-      player0.rightthrust=true;
+      player1.rightthrust=true;
     } else {
-      player0.rightthrust=false;
+      player1.rightthrust=false;
     }
   } 
   catch (Exception e) {
@@ -650,12 +730,9 @@ val3=mappedinvalPow;
   }
 }
 
+void preSolve(Contact cp, Manifold oldManifold) {
+  // TODO Auto-generated method stub
 
-
-// Collision event functions!
-void beginContact(Contact cp) {
-  // println("contact");
-  // Get both fixtures
   Fixture f1 = cp.getFixtureA();
   Fixture f2 = cp.getFixtureB();
   Body b1 = f1.getBody();
@@ -664,12 +741,70 @@ void beginContact(Contact cp) {
   Object o1 = b1.getUserData();
   Object o2 = b2.getUserData();
 
+
+  if (o1.getClass() == CustomShape.class && o2.getClass() == CustomShape.class) {
+    CustomShape cs1 = (CustomShape) o1;
+    CustomShape cs2 = (CustomShape) o2;
+    println("PRESOLVE");
+
+    //cs1.hitShipPresolve();
+    //cs2.hitShipPresolve();
+  }
+}
+
+
+void postSolve(Contact cp, ContactImpulse impulse) {
+  // TODO Auto-generated method stub
+  Fixture f1 = cp.getFixtureA();
+  Fixture f2 = cp.getFixtureB();
+  Body b1 = f1.getBody();
+  Body b2 = f2.getBody();
+
+  Object o1 = b1.getUserData();
+  Object o2 = b2.getUserData();
+
+
+  if (o1.getClass() == CustomShape.class && o2.getClass() == CustomShape.class) {
+    CustomShape cs1 = (CustomShape) o1;
+    CustomShape cs2 = (CustomShape) o2;
+    println("POSTSOLVE");
+
+    // cs1.hitShipPostsolve();
+    // cs2.hitShipPostsolve();
+  }
+}
+
+// Collision event functions!
+void beginContact(Contact cp) {
+  Fixture f1 = cp.getFixtureA();
+  Fixture f2 = cp.getFixtureB();
+  Body b1 = f1.getBody();
+  Body b2 = f2.getBody();
+
+  Object o1 = b1.getUserData();
+  Object o2 = b2.getUserData();
+
+
   // println(o2.getClass());
   // println(o1.getClass());
   /* if (o2.getClass() == CustomShape.class ) {
    CustomShape cs = (CustomShape) o2;
    cs.change();
    }*/
+
+
+
+
+  if (o1.getClass() == CustomShape.class && o2.getClass() == CustomShape.class) {
+    CustomShape cs1 = (CustomShape) o1;
+    CustomShape cs2 = (CustomShape) o2;
+    println("contact");
+
+
+
+    //cs1.hitShip();
+    // cs2.hitShip();
+  }
 
   if (o1.getClass() == Surface.class) {
     CustomShape cs = (CustomShape) o2;
@@ -698,6 +833,15 @@ void endContact(Contact cp) {
   if (o2.getClass() == CustomShape.class ) {
     CustomShape cs = (CustomShape) o2;
     cs.endContact();
+  }
+
+
+  if (o1.getClass() == CustomShape.class && o2.getClass() == CustomShape.class) {
+    CustomShape cs1 = (CustomShape) o1;
+    CustomShape cs2 = (CustomShape) o2;
+
+    // cs1.hitShipEnd();
+    // cs2.hitShipEnd();
   }
 }
 
