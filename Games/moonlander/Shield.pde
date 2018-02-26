@@ -35,7 +35,7 @@ class Shield {
     cs=_cs;
     shieldrings= new ArrayList<Ring>();
 
-    makeBody(width/2, height/2, sWidth/5);
+  //  makeBody(width/2, height/2, sWidth/5);
     //body.setUserData(this);
 
     shieldPoints = new ArrayList<Vec2>();
@@ -51,10 +51,6 @@ class Shield {
 
       theta+=2*PI/9;
     }
-    // shieldPoints.add(new Vec2(-70, -70));
-    // shieldPoints.add(new Vec2(70, -70));
-    // shieldPoints.add(new Vec2(0, 0));
-    // shieldPoints.add(new Vec2(-sWidth,0 ));
 
     Vec2[] vertices = new Vec2[shieldPoints.size()];
     for (int i = 0; i < vertices.length; i++) {
@@ -67,15 +63,11 @@ class Shield {
 
     // The edge chain is now attached to a body via a fixture
     BodyDef bd = new BodyDef();
-    // bd.position.set(box2d.coordPixelsToWorld(0,0));
-
     bd.position.set(0.0f, 0.0f);
     body = box2d.createBody(bd);
-    // Shortcut, we could define a fixture if we
-    // want to specify frictions, restitution, etc.
     body.createFixture(chain, 1);
     body.setUserData(this);
-    body.setActive(false);
+  //  body.setActive(false);
   }
 
   void update(Vec2 _pos) {
@@ -85,8 +77,6 @@ class Shield {
       setShieldActive(false);
       cs.setShieldActive(false);
     }
-
-
 
     for (Ring r : shieldrings) {
       r.update(energycounter);
@@ -106,18 +96,13 @@ class Shield {
         shieldrings.add(r);
       }
     }
-
-    // body.setTransform(box2d.coordPixelsToWorld(1,0), 0);
-    // body.setTransform(box2d.coordPixelsToWorld(width/2+_pos.x,height/2+_pos.y), 0);
-    // body.setTransform( new Vec2(box2d.scalarPixelsToWorld(_pos.x),box2d.scalarPixelsToWorld(height-_pos.y)), 0);
-
     body.setTransform(new Vec2(box2d.scalarPixelsToWorld(_pos.x), box2d.scalarPixelsToWorld(-_pos.y)), 0);
   }
 
   void render() {
 
     Vec2 pos = box2d.getBodyPixelCoord(body);
-    println(pos);
+   // println(pos);
     pushMatrix();
     // translate(width/2-pos.x, height/2-pos.y);
     translate(pos.x-width/2, pos.y-height/2);
@@ -135,28 +120,6 @@ class Shield {
     popMatrix();
 
 
-    //if (bIsActive) {
-    /* pushMatrix();
-     pushStyle();
-     fill(hue, sat, bright, alpha);
-     stroke(hue, sat, bright, 255);
-     translate(position.x, position.y);
-     ellipse(0, 0, sWidth, sHeight);
-     popStyle();
-     popMatrix();*/
-
-
-    // We look at each body and get its screen position
-    Vec2 pos2 = box2d.getBodyPixelCoord(body2);
-    // Get its angle of rotation
-    float a = body.getAngle();
-    pushMatrix();
-    translate(pos2.x, pos2.y);
-    stroke(0);
-    strokeWeight(1);
-    ellipse(0, 0, sWidth, sWidth);
-    // Let's add a line so we can see the rotation
-    popMatrix();
 
 
     pushMatrix();
@@ -171,7 +134,6 @@ class Shield {
 
 
 
-    // }
   }
 
   PVector getPosition() {
@@ -196,7 +158,7 @@ class Shield {
       shielStartAddTimer=millis();
       Ring r = new Ring();
       shieldrings.add(r);
-      body.setActive(true);
+     //body.setActive(true);
     } else {
       body.setActive(false);
     }
@@ -215,7 +177,7 @@ class Shield {
     box2d.destroyBody(body);
   }
 
-
+/*
   // Here's our function that adds the particle to the Box2D world
   void makeBody(float x, float y, float r) {
     // Define a body
@@ -240,7 +202,7 @@ class Shield {
     body2.createFixture(fd);
 
     body2.setAngularVelocity(random(-10, 10));
-  }
+  }*/
 }
 
 

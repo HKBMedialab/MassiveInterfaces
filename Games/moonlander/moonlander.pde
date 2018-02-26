@@ -162,8 +162,8 @@ JSONObject settings;
 // sound
 Minim minim;
 AudioPlayer ambisound;
-AudioPlayer boostsound;
-AudioPlayer hitsound;
+AudioSample boostsound;
+AudioSample hitsound;
 
 CustomShape player1;
 CustomShape player2; 
@@ -277,8 +277,8 @@ void setup() {
   minim = new Minim(this);
   ambisound = minim.loadFile("sounds/Game Ambient.mp3");
   //ambisound.loop();  
-  boostsound = minim.loadFile("sounds/boost.mp3");
-  //  hitsound = minim.loadFile("sounds/Hit.aif",16);
+  boostsound = minim.loadSample("sounds/boost.mp3", 512);
+  hitsound = minim.loadSample("sounds/Hit.mp3", 512);
 }
 
 
@@ -472,8 +472,12 @@ void draw() {
 
 
 void keyPressed() {
+  println(key);
   switch(key) {
 
+  case 'q':
+    boostsound.trigger();
+    break;
 
   case 's':
     player1.setShieldActive(true);
@@ -486,10 +490,13 @@ void keyPressed() {
 
 
   case 'w':
-    boostsound.play(0);
+    boostsound.trigger();
+
     player1.setThrust(true, 2000);
-    if (!boostsound.isPlaying()) {
-    }
+    /* if (!boostsound.isPlaying()) {
+     boostsound.play(0);
+     
+     }*/
     break;
 
   case 'a':
@@ -512,11 +519,13 @@ void keyPressed() {
     break;
 
   case 'i':
-    boostsound.play(0);
+    boostsound.trigger();
+
+    //  boostsound.play(0);
     player2.setThrust(true, 2000);
 
-    if (!boostsound.isPlaying()) {
-    }
+    //if (!boostsound.isPlaying()) {
+    // }
     break;
 
   case 'j':
@@ -561,6 +570,7 @@ void keyPressed() {
 
 
 void keyReleased() {
+  println(key+" released");
 
   switch(key) {
   case 's':
@@ -745,10 +755,10 @@ void preSolve(Contact cp, Manifold oldManifold) {
   if (o1.getClass() == CustomShape.class && o2.getClass() == CustomShape.class) {
     CustomShape cs1 = (CustomShape) o1;
     CustomShape cs2 = (CustomShape) o2;
-    println("PRESOLVE");
+   // println("PRESOLVE");
 
-    //cs1.hitShipPresolve();
-    //cs2.hitShipPresolve();
+    cs1.hitShipPresolve();
+    cs2.hitShipPresolve();
   }
 }
 
@@ -767,15 +777,19 @@ void postSolve(Contact cp, ContactImpulse impulse) {
   if (o1.getClass() == CustomShape.class && o2.getClass() == CustomShape.class) {
     CustomShape cs1 = (CustomShape) o1;
     CustomShape cs2 = (CustomShape) o2;
-    println("POSTSOLVE");
+   // println("POSTSOLVE");
 
-    // cs1.hitShipPostsolve();
-    // cs2.hitShipPostsolve();
+     cs1.hitShipPostsolve();
+     cs2.hitShipPostsolve();
   }
 }
 
 // Collision event functions!
 void beginContact(Contact cp) {
+
+
+  //hitsound.trigger(); 
+
   Fixture f1 = cp.getFixtureA();
   Fixture f2 = cp.getFixtureB();
   Body b1 = f1.getBody();
@@ -800,10 +814,10 @@ void beginContact(Contact cp) {
     CustomShape cs2 = (CustomShape) o2;
     println("contact");
 
+    hitsound.trigger();
 
-
-    //cs1.hitShip();
-    // cs2.hitShip();
+    cs1.hitShip();
+    cs2.hitShip();
   }
 
   if (o1.getClass() == Surface.class) {
@@ -840,8 +854,8 @@ void endContact(Contact cp) {
     CustomShape cs1 = (CustomShape) o1;
     CustomShape cs2 = (CustomShape) o2;
 
-    // cs1.hitShipEnd();
-    // cs2.hitShipEnd();
+     cs1.hitShipEnd();
+     cs2.hitShipEnd();
   }
 }
 

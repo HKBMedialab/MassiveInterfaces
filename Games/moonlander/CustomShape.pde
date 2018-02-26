@@ -454,17 +454,20 @@ class CustomShape {
       //body.setType(BodyType.STATIC);
       // changeType=true;
       Fixture f = body.getFixtureList();
-      f.setRestitution(10);
+    //  f.setRestitution(10);
+     f.setDensity(10);
+     body.resetMassData();
+     // body.setMassData();
     }
   }
 
   void hitShipPostsolve() {
     println(id+ " hit ship postsolve"+body.getLinearVelocity()+" before"+velocityBefore);
     if (shield.getShieldIsActive()) {
-      body.setLinearVelocity(new Vec2(0, 0));
-      Fixture f = body.getFixtureList();
-      f.setRestitution(RESTITUTION);
-      f.setDensity(DENSITY);
+     body.setLinearVelocity(new Vec2(0, 0));
+      //Fixture f = body.getFixtureList();
+      //f.setRestitution(RESTITUTION);
+      //f.setDensity(DENSITY);
     }
   }
 
@@ -496,6 +499,12 @@ class CustomShape {
      // body.setLinearVelocity(velocityBefore);
      // body.setType(BodyType.STATIC);
      }*/
+     
+       Fixture f = body.getFixtureList();
+    //  f.setRestitution(10);
+     f.setDensity(DENSITY);
+     body.resetMassData();
+     
   }
 
   void resetPosition() {
