@@ -13,11 +13,10 @@ class CustomShape {
   //Thrust animation
   int num=5;
   ArrayList <Thrust>thrustrings; 
-
-
   int thrustFramedistance=3;
 
   color col;
+  color glowcolor=color(255);
 
   boolean changeType=false;
   boolean changeRestitution=false;
@@ -30,18 +29,14 @@ class CustomShape {
   PImage shipglow2;
   PImage shipglow3;
 
-  PImage duese;
 
-  PImage thrustimg;
-  PImage leftimg;
-  PImage rightimg;
 
   int id;
 
+  float blinktheta=0;
 
   Vec2 posBefore; 
   Vec2 velocityBefore;
-  boolean resetPosition=false;
 
   PApplet sketchRef;
 
@@ -64,16 +59,7 @@ class CustomShape {
 
     ship = loadImage("ship/ship_body.png");
     shipglow1 = loadImage("ship/glow_smooth1.png");
-    shipglow2 = loadImage("ship/glow_smooth2.png");
-    shipglow3 = loadImage("ship/glow_smooth3.png");
-    /*
-       shipglow1 = loadImage("ship/glow_grain1.png");
-     shipglow2 = loadImage("ship/glow_grain2.png");
-     shipglow3 = loadImage("ship/glow_grain3.png");
-     */
-    thrustimg = loadImage("ship/000.png");
-    rightimg = loadImage("ship/001.png");
-    leftimg = loadImage("ship/002.png");
+
     thrustrings= new ArrayList<Thrust>();
   }
 
@@ -101,8 +87,6 @@ class CustomShape {
 
   // Drawing the box
   void display() {
-    if (changeType)changeBodyType();
-    if (resetPosition)resetPosition();
     shield.update(box2d.getBodyPixelCoord(body));
 
     body.setLinearDamping(DAMPING);
@@ -139,25 +123,11 @@ class CustomShape {
     float a = body.getAngle();
 
 
-    Fixture f = body.getFixtureList();
 
 
 
-    PolygonShape ps = (PolygonShape) f.getShape();
     shield.setPosition(new PVector(pos.x, pos.y));
 
-    /* if (rightthrust) {
-     body.setTransform(body.getPosition(), -0.1);
-     }
-     
-     else if (leftthrust) {
-     body.setTransform(body.getPosition(), PI/6);
-     }
-     else{
-     body.setTransform(body.getPosition(), 0);
-     
-     }
-     */
 
     rectMode(CENTER);
     shield.render();
@@ -173,34 +143,30 @@ class CustomShape {
       rotate(-0.1);
     }
 
-    fill(col);
-
-    stroke(0);
 
     pushMatrix();
-    //translate();
-    colorMode(RGB);
-
-
-    // blendMode(SCREEN);
-    tint(200, 0, 0, 210);
-    // image(shipglow2, -shipglow2.width/2, -shipglow2.height/2);
-    //noTint();
-    tint(200, 0, 0, 220);
+    tint(glowcolor, 250);
+        blendMode(SCREEN);
     image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
-    noTint();
-    tint(200, 0, 0, 255);
-    // image(shipglow3, -shipglow3.width/2, -shipglow3.height/2);
-    //blendMode(BLEND);
 
-    tint(col);
+    image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
+    blendMode(BLEND);
+
+    //float alpha=map(sin(blinktheta), -1, 1, 100, 255);
+    //blinktheta+=0.1*shield.getEnergyCounter();
+    //tint(col, alpha);
+        tint(col);
+
+
+    // if (pos.x>(width/2-PLATTFORMWIDTH/2) &&pos.x<(width/2+PLATTFORMWIDTH/2)) {
+    //   tint(color(255, 0, 255));
+    // }
+
     image(ship, -ship.width/2, -ship.height/2);
     noTint();
-    //tint(255);
-    // colorMode(HSB);
-
     popMatrix();
 
+    stroke(0);
 
     /*
     beginShape();
@@ -226,11 +192,8 @@ class CustomShape {
       }
     }
 
-
-
-
     if (thrust) {
-      float h=map(thrustforce, 0, MAXTHRUSTFORCE*500, 80, 180);
+      //float h=map(thrustforce, 0, MAXTHRUSTFORCE*500, 80, 180);
       if (frameCount%thrustFramedistance==0) {
         Thrust t = new Thrust();
         thrustrings.add(t);
@@ -269,59 +232,12 @@ class CustomShape {
 
     // Define a polygon (this is what we use for a rectangle)
     PolygonShape sd = new PolygonShape();
-
     Vec2[] vertices = new Vec2[5];
-
     vertices[0] = box2d.vectorPixelsToWorld(new Vec2(0, -59));
     vertices[1] = box2d.vectorPixelsToWorld(new Vec2(18, -39));
-    vertices[2] = box2d.vectorPixelsToWorld(new Vec2(18, 55));
-
+    vertices[2] = box2d.vectorPixelsToWorld(new Vec2(25, 55));
     vertices[3] = box2d.vectorPixelsToWorld(new Vec2(-18, 55));
     vertices[4] = box2d.vectorPixelsToWorld(new Vec2(-18, -39));
-
-
-
-
-
-    /*vertices[0] = box2d.vectorPixelsToWorld(new Vec2(0, 0));
-     vertices[1] = box2d.vectorPixelsToWorld(new Vec2(-15, 25));
-     vertices[2] = box2d.vectorPixelsToWorld(new Vec2(-100, 70));
-     vertices[3] = box2d.vectorPixelsToWorld(new Vec2(-30, 90));
-     vertices[4] = box2d.vectorPixelsToWorld(new Vec2(-35, 117));
-     vertices[5] = box2d.vectorPixelsToWorld(new Vec2(-30, 117));
-     vertices[6] = box2d.vectorPixelsToWorld(new Vec2(-17, 100));
-     vertices[7] = box2d.vectorPixelsToWorld(new Vec2(-8, 113));/*
-     vertices[8] = box2d.vectorPixelsToWorld(new Vec2(8, 113));
-     vertices[9] = box2d.vectorPixelsToWorld(new Vec2(17, 100));
-     vertices[10] = box2d.vectorPixelsToWorld(new Vec2(30, 117));
-     vertices[11] = box2d.vectorPixelsToWorld(new Vec2(35, 117));
-     vertices[12] = box2d.vectorPixelsToWorld(new Vec2(30, 90));
-     vertices[13] = box2d.vectorPixelsToWorld(new Vec2(17, 70));
-     vertices[14] = box2d.vectorPixelsToWorld(new Vec2(15, 25));
-     
-     
-    /*
-     vertices[0] = box2d.vectorPixelsToWorld(new Vec2(0, 0));
-     vertices[1] = box2d.vectorPixelsToWorld(new Vec2(15, 25));
-     vertices[2] = box2d.vectorPixelsToWorld(new Vec2(100, 70));
-     vertices[3] = box2d.vectorPixelsToWorld(new Vec2(30, 90));
-     vertices[4] = box2d.vectorPixelsToWorld(new Vec2(35, 117));
-     vertices[5] = box2d.vectorPixelsToWorld(new Vec2(30, 117));
-     vertices[6] = box2d.vectorPixelsToWorld(new Vec2(17, 100));
-     vertices[7] = box2d.vectorPixelsToWorld(new Vec2(8, 113));
-     vertices[8] = box2d.vectorPixelsToWorld(new Vec2(-8, 113));/*
-     vertices[9] = box2d.vectorPixelsToWorld(new Vec2(-17, 100));
-     vertices[10] = box2d.vectorPixelsToWorld(new Vec2(-30, 117));
-     vertices[11] = box2d.vectorPixelsToWorld(new Vec2(-35, 117));
-     vertices[12] = box2d.vectorPixelsToWorld(new Vec2(-30, 90));
-     vertices[13] = box2d.vectorPixelsToWorld(new Vec2(-17, 70));
-     vertices[14] = box2d.vectorPixelsToWorld(new Vec2(-15, 25));*/
-
-
-
-
-
-
     sd.set(vertices, vertices.length);
 
     // Define the body and make it from the shape
@@ -340,10 +256,6 @@ class CustomShape {
     fd.restitution =RESTITUTION;
     // Attach fixture to body
     body.createFixture(fd);
-    //body.createFixture(sd, 1.0);
-    // Give it some initial random velocity
-    //body.setLinearVelocity(new Vec2(random(-5, 5), random(2, 5)));
-    //body.setAngularVelocity(random(-5, 5));
   }
 
   void verticalThrust() {
@@ -413,16 +325,15 @@ class CustomShape {
 
   // Change color when hit
   void hitSurface() {
-
     Vec2 pos = box2d.getBodyPixelCoord(body);
     if (pos.x>(width/2-15) &&pos.x<(width/2+15)) {
       Vec2 velocity = body.getLinearVelocity();
       float speed = velocity.length();
       println("++++++++++++++"+speed);
-      if (speed<MAXLANDSPEED) {
+      if (speed<MAXLANDSPEED  || shield.getShieldIsActive()) {
         changeGameState(LANDED);
       } else {
-        changeGameState(CRASHED);
+        // changeGameState(CRASHED);
       }
     }
   }
@@ -430,102 +341,34 @@ class CustomShape {
 
   void hitShip() {
     velocityBefore=new Vec2(body.getLinearVelocity().x, body.getLinearVelocity().y);
-    println(id +" hit ship "+body.getLinearVelocity());
-
-    /*if (shield.getShieldIsActive()) {
-     Fixture f = body.getFixtureList();
-     f.setRestitution(-10);
-     //changeType=true;
-     }*/
   }
 
-
-
   void hitShipPresolve() {
-
-    //println("hit ship presolve");
-    println(id+ " hit ship presolve"+body.getLinearVelocity());
-
-    //velocityBefore=body.getLinearVelocity();
-    //body.setType(BodyType.STATIC);
-
     if (shield.getShieldIsActive()) {
-      //body.setType(BodyType.STATIC);
-      // changeType=true;
       Fixture f = body.getFixtureList();
       f.setRestitution(0);
       f.setDensity(10);
       body.resetMassData();
-      // body.setMassData();
     }
   }
 
   void hitShipPostsolve() {
-    println(id+ " hit ship postsolve"+body.getLinearVelocity()+" before"+velocityBefore);
     if (shield.getShieldIsActive()) {
       body.setLinearVelocity(new Vec2(0, 0));
-      //Fixture f = body.getFixtureList();
-      //f.setRestitution(RESTITUTION);
-      //f.setDensity(DENSITY);
     }
   }
-
 
 
   void hitShipEnd() {
-    //println("hit ship end ");
-    println(id+ " hit ship end"+body.getLinearVelocity());
-
-    /* if (shield.getShieldIsActive()) {
-     body.setLinearVelocity(velocityBefore);
-     }*/
-    //body.setActive(true);
-
-
-    /*if (body.getType()==BodyType.STATIC) {
-     body.setType(BodyType.DYNAMIC);
-     //body.setLinearVelocity(new Vec2(0, 0));
-     // resetPosition=true;
-     }*/
-    /*
-    if (body.getType()==BodyType.STATIC) {
-     changeType=true;
-     }
-     
-     if (shield.getShieldIsActive()) {
-     //   resetPosition=true;
-     //body.setTransform(posBefore, 0);
-     // body.setLinearVelocity(velocityBefore);
-     // body.setType(BodyType.STATIC);
-     }*/
-
     Fixture f = body.getFixtureList();
-     f.setRestitution(RESTITUTION);
+    if (shield.getShieldIsActive()) {
+      setRestitution(0);
+    } else {
+      f.setRestitution(RESTITUTION);
+      body.resetMassData();
+    }
     f.setDensity(DENSITY);
     body.resetMassData();
-  }
-
-  void resetPosition() {
-    //body.setTransform(posBefore, 0);
-    body.setLinearVelocity(new Vec2(0, 0));
-    resetPosition=false;
-  }
-
-  void changeBodyType() {
-    if (body.getType()==BodyType.DYNAMIC) {
-      body.setType(BodyType.STATIC);
-    } else {
-      body.setType(BodyType.DYNAMIC);
-    }
-    //Fixture f = body.getFixtureList();
-    //f.setRestitution(0);
-    changeType=false;
-  }
-
-  void changeRestitution() {
-    //body.setType(BodyType.KINEMATIC);
-    Fixture f = body.getFixtureList();
-    f.setRestitution(0);
   }
 
 
@@ -534,9 +377,9 @@ class CustomShape {
   }
 
   void setRestitution(float res) {
-    //body.setType(BodyType.KINEMATIC);
     Fixture f = body.getFixtureList();
     f.setRestitution(res);
+    body.resetMassData();
   }
 
   // Change color when hit
@@ -544,10 +387,17 @@ class CustomShape {
     // col = color(175);
   }
 
-  void setColor(int _col) {
+  void setColor(color _col) {
     col=_col;
   }
 
+  void setGlowColor(color _col) {
+    glowcolor=_col;
+  }
+
+  void setShieldColor(color _col) {
+    shield.setColor(_col);
+  }
 
   void loadShield(int amt) {
     shield.loadShield(amt);

@@ -37,7 +37,7 @@ Box2DProcessing box2d;
 
 // WORLD
 float GRAVITY = 40;
-float RESTITUTION=2;
+float RESTITUTION=1.7;
 float DAMPING = 1;
 
 
@@ -47,6 +47,8 @@ float MAXSPEED=200;
 float IMPULSE=10;
 float MAXTHRUSTFORCE=8;
 
+//PLATTFORM
+final int PLATTFORMWIDTH=130;
 
 final int MAXLANDSPEED=20;
 
@@ -185,7 +187,6 @@ void setup() {
 
   frameRate(30);
   //fullScreen();
-  colorMode(HSB);
 
 
 
@@ -203,9 +204,15 @@ void setup() {
 
   polygons = new ArrayList<CustomShape>();
   CustomShape cs = new CustomShape(this, 20, 500, 1);
+  cs.setColor(color(0));
+  cs.setGlowColor(color(255, 0, 0));
+  
   polygons.add(cs);
 
   cs = new CustomShape(this, 200, 100, 2);
+  cs.setColor(color(0));
+  cs.setGlowColor(color(255, 255, 255));
+
   polygons.add(cs);
 
   RG.init(this);
@@ -217,7 +224,8 @@ void setup() {
   // Create the surface
   surface = new Surface();
 
-  //plattform=new Plattform(p);
+
+  plattform=new Plattform(new PVector(width/2,590));
 
   // Arduino stuff
   println(Serial.list());
@@ -254,15 +262,12 @@ void setup() {
   test_landscape= loadImage("backgrounds/test_landscape.png");
 
   combinedbackground=createGraphics(width, height);
-
   combinedbackground.beginDraw();
   combinedbackground.image(background_0, 0, 0);
   combinedbackground.image(background_1_planet1, 0, 0);
   combinedbackground.image(background_2_planet2, 0, 0);
-
   combinedbackground.image(background_3_planet3, 0, 0);
   combinedbackground.image(background_4, 0, 0);
-
   combinedbackground.endDraw();
 
 
@@ -296,6 +301,7 @@ void setTocuosc(NetAddress _remoteLocation, String adress, float value) {
 float debugval;
 void draw() {
   background(0);
+    rectMode(CENTER);
 
 
   /*image(background_0, 0, 0);
@@ -314,6 +320,8 @@ void draw() {
    image(background_4, 0, 0);*/
   image(combinedbackground, 0, 0);
   image(test_landscape, 0, 0);
+  
+  plattform.render();
 
   /*planet1.add(planet1_speed);
    if (planet1.x>width)planet1.x=-background_1_planet1.width;
@@ -428,7 +436,7 @@ void draw() {
     line(0, mrightTriggerVal, width, mrightTriggerVal);
     plotterA2.plott(0, 600, 0, pH);
     popMatrix();
-    colorMode(HSB);
+    //colorMode(HSB);
     rectMode(CENTER);
   }
 
@@ -513,10 +521,6 @@ void keyTyped() {
     break;
 
 
-
-  case 'b':
-    player1.changeBodyType();
-    break;
 
 
   case 'k':
@@ -759,7 +763,7 @@ void preSolve(Contact cp, Manifold oldManifold) {
   if (o1.getClass() == CustomShape.class && o2.getClass() == CustomShape.class) {
     CustomShape cs1 = (CustomShape) o1;
     CustomShape cs2 = (CustomShape) o2;
-   // println("PRESOLVE");
+    // println("PRESOLVE");
 
     cs1.hitShipPresolve();
     cs2.hitShipPresolve();
@@ -781,10 +785,10 @@ void postSolve(Contact cp, ContactImpulse impulse) {
   if (o1.getClass() == CustomShape.class && o2.getClass() == CustomShape.class) {
     CustomShape cs1 = (CustomShape) o1;
     CustomShape cs2 = (CustomShape) o2;
-   // println("POSTSOLVE");
+    // println("POSTSOLVE");
 
-     cs1.hitShipPostsolve();
-     cs2.hitShipPostsolve();
+    cs1.hitShipPostsolve();
+    cs2.hitShipPostsolve();
   }
 }
 
@@ -858,8 +862,8 @@ void endContact(Contact cp) {
     CustomShape cs1 = (CustomShape) o1;
     CustomShape cs2 = (CustomShape) o2;
 
-     cs1.hitShipEnd();
-     cs2.hitShipEnd();
+    cs1.hitShipEnd();
+    cs2.hitShipEnd();
   }
 }
 

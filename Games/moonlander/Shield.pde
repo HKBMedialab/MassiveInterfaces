@@ -12,19 +12,15 @@ class Shield {
   int shielStartAddTimer=0;
   int addTime=1400;
 
+  color setColor;
+
   CustomShape cs;
 
 
   //Thrust animation
   int num=5;
   ArrayList <Ring>shieldrings; 
-
   ArrayList <LoadParticle>particles; 
-
-
-  int ringFramedistance=30;
-
-  ArrayList<Vec2> shieldPoints;
 
 
   Body body;
@@ -40,37 +36,6 @@ class Shield {
     shieldrings= new ArrayList<Ring>();
     particles= new ArrayList<LoadParticle>();
 
-
-    //  makeBody(width/2, height/2, sWidth/5);
-    //body.setUserData(this);
-
-    shieldPoints = new ArrayList<Vec2>();
-
-    // This is what box2d uses to put the surface in its world
-    ChainShape chain = new ChainShape();
-
-    float theta=0;
-    for (int i=0; i<10; i++) {
-      shieldPoints.add(new Vec2(sin(theta)*80, cos(theta)*80));
-      theta+=2*PI/9;
-    }
-
-    Vec2[] vertices = new Vec2[shieldPoints.size()];
-    for (int i = 0; i < vertices.length; i++) {
-      Vec2 edge = box2d.coordPixelsToWorld(shieldPoints.get(i));
-      vertices[i] = edge;
-    }
-
-    // Create the chain!
-    chain.createChain(vertices, vertices.length);
-
-    // The edge chain is now attached to a body via a fixture
-    BodyDef bd = new BodyDef();
-    bd.position.set(0.0f, 0.0f);
-    body = box2d.createBody(bd);
-    body.createFixture(chain, 1);
-    body.setUserData(this);
-    //  body.setActive(false);
 
     energycounter=startenergy;
   }
@@ -106,7 +71,6 @@ class Shield {
       }
     }
 
-
     if (bIsActive) {
       if (millis()-shielStartAddTimer>addTime) {
         shielStartAddTimer=millis();
@@ -114,45 +78,22 @@ class Shield {
         shieldrings.add(r);
       }
     }
-    body.setTransform(new Vec2(box2d.scalarPixelsToWorld(_pos.x), box2d.scalarPixelsToWorld(-_pos.y)), 0);
   }
 
   void render() {
-
-    Vec2 pos = box2d.getBodyPixelCoord(body);
-    pushMatrix();
-    translate(pos.x-width/2, pos.y-height/2);
-    pushStyle();
-    strokeWeight(2);
-    stroke(255);
-    noFill();
-    beginShape();
-    for (Vec2 v : shieldPoints) {
-      vertex(v.x, v.y);
-    }
-    endShape();
-    popStyle();
-    popMatrix();
-
-
-
-
     pushMatrix();
     translate(position.x, position.y);
-
     pushStyle();
     for (Ring r : shieldrings) {
       r.render();
     }
     popStyle();
 
-
     pushStyle();
     for (LoadParticle p : particles) {
       p.render();
     }
     popStyle();
-
     popMatrix();
   }
 
@@ -178,9 +119,7 @@ class Shield {
       shielStartAddTimer=millis();
       Ring r = new Ring();
       shieldrings.add(r);
-      //body.setActive(true);
     } else {
-      body.setActive(false);
     }
   }
 
@@ -192,57 +131,35 @@ class Shield {
     return bIsActive;
   }
 
-  // This function removes the particle from the box2d world
-  void killBody() {
-    box2d.destroyBody(body);
-  }
 
   void loadShield(int amt) {
     energycounter+=amt;
     println(energycounter);
-    for (int i=0; i<amt; i++) {
+    for (int i=0; i<amt*2; i++) {
       LoadParticle p = new LoadParticle();
       particles.add(p);
     }
   }
 
-  /*
-  // Here's our function that adds the particle to the Box2D world
-   void makeBody(float x, float y, float r) {
-   // Define a body
-   BodyDef bd = new BodyDef();
-   // Set its position
-   bd.position = box2d.coordPixelsToWorld(x, y);
-   bd.type = BodyType.KINEMATIC;
-   body2 = box2d.createBody(bd);
-   
-   // Make the body's shape a circle
-   CircleShape cs = new CircleShape();
-   cs.m_radius = box2d.scalarPixelsToWorld(r);
-   
-   FixtureDef fd = new FixtureDef();
-   fd.shape = cs;
-   // Parameters that affect physics
-   fd.density = 1;
-   fd.friction = 0.01;
-   fd.restitution = 0.3;
-   
-   // Attach fixture to body
-   body2.createFixture(fd);
-   
-   body2.setAngularVelocity(random(-10, 10));
-   }*/
+  void setColor(color _col) {
+    setColor=_col;
+  }
+
+  int getEnergyCounter() {
+    return energycounter;
+  }
 }
 
 
 class LoadParticle {
-  PVector position=new PVector (150, 0);
+  float initDist=150;
+  PVector position=new PVector (initDist, 0);
   PVector target=new PVector (0, 0);
 
   PVector speed=new PVector (2, 0);
 
   boolean removeMe=false;
-
+  float alpha=255;
 
   LoadParticle() {
     position.rotate(random(2*PI));
@@ -252,15 +169,17 @@ class LoadParticle {
 
   void update() {
     position.add(speed);
-    if (target.copy().sub(position.copy()).mag()<5) {
+    float dist=target.copy().sub(position.copy()).mag();
+    if (dist<5) {
       removeMe=true;
     }
+    alpha=map(dist, initDist, 0, 255, 0);
   }
 
   void render() {
     pushStyle();
     noStroke();
-    fill(255, 255, 255);
+    fill(255, 255, 255, alpha);
     pushMatrix();
     translate(position.x, position.y);
     rect(0, 0, 5, 5);
