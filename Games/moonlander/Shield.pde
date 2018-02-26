@@ -7,7 +7,7 @@ class Shield {
   float hue, sat, bright, alpha;
 
   int energycounter=0;
-  int startenergy=200;
+  int startenergy=200; //Debug
 
   int shielStartAddTimer=0;
   int addTime=1400;
@@ -18,6 +18,10 @@ class Shield {
   //Thrust animation
   int num=5;
   ArrayList <Ring>shieldrings; 
+
+  ArrayList <LoadParticle>particles; 
+
+
   int ringFramedistance=30;
 
   ArrayList<Vec2> shieldPoints;
@@ -34,8 +38,10 @@ class Shield {
     alpha=100;
     cs=_cs;
     shieldrings= new ArrayList<Ring>();
+    particles= new ArrayList<LoadParticle>();
 
-  //  makeBody(width/2, height/2, sWidth/5);
+
+    //  makeBody(width/2, height/2, sWidth/5);
     //body.setUserData(this);
 
     shieldPoints = new ArrayList<Vec2>();
@@ -45,10 +51,7 @@ class Shield {
 
     float theta=0;
     for (int i=0; i<10; i++) {
-
-      // println("sin" +sin(theta)*70);
       shieldPoints.add(new Vec2(sin(theta)*80, cos(theta)*80));
-
       theta+=2*PI/9;
     }
 
@@ -67,11 +70,13 @@ class Shield {
     body = box2d.createBody(bd);
     body.createFixture(chain, 1);
     body.setUserData(this);
-  //  body.setActive(false);
+    //  body.setActive(false);
+
+    energycounter=startenergy;
   }
 
   void update(Vec2 _pos) {
-    energycounter--;
+    if (getShieldIsActive())energycounter--;
     if (energycounter<0) {
       energycounter=0;
       setShieldActive(false);
@@ -89,6 +94,19 @@ class Shield {
         shieldrings.remove(i);
       }
     }
+
+    for (LoadParticle p : particles) {
+      p.update();
+    }
+
+    for (int i = particles.size()-1; i >= 0; i--) {
+      LoadParticle p = particles.get(i);
+      if (p.removeMe) {
+        particles.remove(i);
+      }
+    }
+
+
     if (bIsActive) {
       if (millis()-shielStartAddTimer>addTime) {
         shielStartAddTimer=millis();
@@ -102,11 +120,8 @@ class Shield {
   void render() {
 
     Vec2 pos = box2d.getBodyPixelCoord(body);
-   // println(pos);
     pushMatrix();
-    // translate(width/2-pos.x, height/2-pos.y);
     translate(pos.x-width/2, pos.y-height/2);
-
     pushStyle();
     strokeWeight(2);
     stroke(255);
@@ -130,10 +145,15 @@ class Shield {
       r.render();
     }
     popStyle();
+
+
+    pushStyle();
+    for (LoadParticle p : particles) {
+      p.render();
+    }
+    popStyle();
+
     popMatrix();
-
-
-
   }
 
   PVector getPosition() {
@@ -152,13 +172,13 @@ class Shield {
   void setShieldActive(boolean _active) {
     bIsActive=_active;
 
-    if (bIsActive) {
+    if (bIsActive && energycounter>0) {
       shieldrings.clear();
       energycounter=startenergy;
       shielStartAddTimer=millis();
       Ring r = new Ring();
       shieldrings.add(r);
-     //body.setActive(true);
+      //body.setActive(true);
     } else {
       body.setActive(false);
     }
@@ -177,32 +197,83 @@ class Shield {
     box2d.destroyBody(body);
   }
 
-/*
+  void loadShield(int amt) {
+    energycounter+=amt;
+    println(energycounter);
+    for (int i=0; i<amt; i++) {
+      LoadParticle p = new LoadParticle();
+      particles.add(p);
+    }
+  }
+
+  /*
   // Here's our function that adds the particle to the Box2D world
-  void makeBody(float x, float y, float r) {
-    // Define a body
-    BodyDef bd = new BodyDef();
-    // Set its position
-    bd.position = box2d.coordPixelsToWorld(x, y);
-    bd.type = BodyType.KINEMATIC;
-    body2 = box2d.createBody(bd);
+   void makeBody(float x, float y, float r) {
+   // Define a body
+   BodyDef bd = new BodyDef();
+   // Set its position
+   bd.position = box2d.coordPixelsToWorld(x, y);
+   bd.type = BodyType.KINEMATIC;
+   body2 = box2d.createBody(bd);
+   
+   // Make the body's shape a circle
+   CircleShape cs = new CircleShape();
+   cs.m_radius = box2d.scalarPixelsToWorld(r);
+   
+   FixtureDef fd = new FixtureDef();
+   fd.shape = cs;
+   // Parameters that affect physics
+   fd.density = 1;
+   fd.friction = 0.01;
+   fd.restitution = 0.3;
+   
+   // Attach fixture to body
+   body2.createFixture(fd);
+   
+   body2.setAngularVelocity(random(-10, 10));
+   }*/
+}
 
-    // Make the body's shape a circle
-    CircleShape cs = new CircleShape();
-    cs.m_radius = box2d.scalarPixelsToWorld(r);
 
-    FixtureDef fd = new FixtureDef();
-    fd.shape = cs;
-    // Parameters that affect physics
-    fd.density = 1;
-    fd.friction = 0.01;
-    fd.restitution = 0.3;
+class LoadParticle {
+  PVector position=new PVector (150, 0);
+  PVector target=new PVector (0, 0);
 
-    // Attach fixture to body
-    body2.createFixture(fd);
+  PVector speed=new PVector (2, 0);
 
-    body2.setAngularVelocity(random(-10, 10));
-  }*/
+  boolean removeMe=false;
+
+
+  LoadParticle() {
+    position.rotate(random(2*PI));
+    speed=target.copy().sub(position.copy());
+    speed.limit(random(2, 5));
+  }
+
+  void update() {
+    position.add(speed);
+    if (target.copy().sub(position.copy()).mag()<5) {
+      removeMe=true;
+    }
+  }
+
+  void render() {
+    pushStyle();
+    noStroke();
+    fill(255, 255, 255);
+    pushMatrix();
+    translate(position.x, position.y);
+    rect(0, 0, 5, 5);
+    popMatrix();
+
+    fill(100, 255, 255);
+
+    pushMatrix();
+    translate(target.x, target.y);
+    rect(0, 0, 5, 5);
+    popMatrix();
+    popStyle();
+  }
 }
 
 
@@ -258,7 +329,7 @@ class Ring {
     pushStyle();
     pushMatrix();
     translate(position.x, position.y);
-    rotate(speed.heading()+PI/2);
+    //rotate(speed.heading()+PI/2);
     noFill();
     //blendMode(SCREEN);
     /*strokeWeight(20);

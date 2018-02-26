@@ -37,7 +37,7 @@ Box2DProcessing box2d;
 
 // WORLD
 float GRAVITY = 40;
-float RESTITUTION=1;
+float RESTITUTION=2;
 float DAMPING = 1;
 
 
@@ -471,7 +471,7 @@ void draw() {
 
 
 
-void keyPressed() {
+void keyTyped() {
   println(key);
   switch(key) {
 
@@ -481,6 +481,11 @@ void keyPressed() {
 
   case 's':
     player1.setShieldActive(true);
+    break;
+
+
+  case 'y':
+    player1.loadShield(5);
     break;
 
 
@@ -570,7 +575,6 @@ void keyPressed() {
 
 
 void keyReleased() {
-  println(key+" released");
 
   switch(key) {
   case 's':
