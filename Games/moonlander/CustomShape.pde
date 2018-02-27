@@ -35,6 +35,10 @@ class CustomShape {
 
   float blinktheta=0;
 
+  float startX;
+  float startY;
+
+
   Vec2 posBefore; 
   Vec2 velocityBefore;
 
@@ -47,13 +51,12 @@ class CustomShape {
   CustomShape(PApplet pa, float x, float y, int _id) {
     id=_id;
     sketchRef=pa;
-    // Add the box to the box2d world
+    startX=x;
+    startY=y;
     makeBody(new Vec2(x, y));
     body.setUserData(this);
-
     shield=new Shield(this);
     shield.setShieldActive(false);
-
 
     col = color(175);
 
@@ -146,16 +149,15 @@ class CustomShape {
 
     pushMatrix();
     tint(glowcolor, 250);
-        blendMode(SCREEN);
+    // blendMode(SCREEN);
     image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
-
-    image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
-    blendMode(BLEND);
+    //  image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
+    //blendMode(BLEND);
 
     //float alpha=map(sin(blinktheta), -1, 1, 100, 255);
     //blinktheta+=0.1*shield.getEnergyCounter();
     //tint(col, alpha);
-        tint(col);
+    tint(col);
 
 
     // if (pos.x>(width/2-PLATTFORMWIDTH/2) &&pos.x<(width/2+PLATTFORMWIDTH/2)) {
@@ -166,10 +168,9 @@ class CustomShape {
     noTint();
     popMatrix();
 
-    stroke(0);
-
     /*
-    beginShape();
+     stroke(0);
+     beginShape();
      //println(vertices.length);
      // For every vertex, convert to pixel vector
      for (int i = 0; i < ps.getVertexCount(); i++) {
@@ -195,7 +196,7 @@ class CustomShape {
     if (thrust) {
       //float h=map(thrustforce, 0, MAXTHRUSTFORCE*500, 80, 180);
       if (frameCount%thrustFramedistance==0) {
-        Thrust t = new Thrust();
+        Thrust t = new Thrust(thrustforce);
         thrustrings.add(t);
       }
     }
@@ -291,8 +292,17 @@ class CustomShape {
   }
 
   void setThrust(boolean _thrust, int _thrustforce) {
-    thrust=_thrust;
-    thrustforce=_thrustforce;
+    if (useCounter) {
+      if (!thrust) {
+        thrust=_thrust;
+        thrustforce=_thrustforce;
+        boostsound.trigger();
+      }
+    } else {
+      thrust=_thrust;
+      thrustforce=_thrustforce;
+      boostsound.trigger();
+    }
   }
 
   void setLeftThrust(boolean _thrust) {
@@ -337,7 +347,6 @@ class CustomShape {
       }
     }
   }
-
 
   void hitShip() {
     velocityBefore=new Vec2(body.getLinearVelocity().x, body.getLinearVelocity().y);
@@ -401,5 +410,12 @@ class CustomShape {
 
   void loadShield(int amt) {
     shield.loadShield(amt);
+  }
+
+  void reset() {
+    shield.energycounter=0;
+    shield.loadShield(200);
+    shield.setShieldActive(false);
+    body.setTransform(box2d.coordPixelsToWorld(new Vec2(startX, startY)), 0);
   }
 }

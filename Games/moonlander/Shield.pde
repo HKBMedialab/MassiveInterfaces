@@ -59,9 +59,10 @@ class Shield {
         shieldrings.remove(i);
       }
     }
-
-    for (LoadParticle p : particles) {
-      p.update();
+    if (particles.size()>0) {
+      for (LoadParticle p : particles) {
+        p.update();
+      }
     }
 
     for (int i = particles.size()-1; i >= 0; i--) {
@@ -136,7 +137,11 @@ class Shield {
     energycounter+=amt;
     println(energycounter);
     for (int i=0; i<amt*2; i++) {
-      LoadParticle p = new LoadParticle();
+      colorMode(HSB);
+      color c=color(random(50, 150), random(30, 120), 255);
+      colorMode(RGB);
+
+      LoadParticle p = new LoadParticle(c);
       particles.add(p);
     }
   }
@@ -155,16 +160,16 @@ class LoadParticle {
   float initDist=150;
   PVector position=new PVector (initDist, 0);
   PVector target=new PVector (0, 0);
-
   PVector speed=new PVector (2, 0);
-
   boolean removeMe=false;
   float alpha=255;
+  color col;
 
-  LoadParticle() {
+  LoadParticle(color _col) {
     position.rotate(random(2*PI));
     speed=target.copy().sub(position.copy());
     speed.limit(random(2, 5));
+    col=_col;
   }
 
   void update() {
@@ -177,21 +182,17 @@ class LoadParticle {
   }
 
   void render() {
+    colorMode(HSB);
+
     pushStyle();
     noStroke();
-    fill(255, 255, 255, alpha);
+    fill(col, alpha);
     pushMatrix();
     translate(position.x, position.y);
     rect(0, 0, 5, 5);
     popMatrix();
-
-    fill(100, 255, 255);
-
-    pushMatrix();
-    translate(target.x, target.y);
-    rect(0, 0, 5, 5);
-    popMatrix();
     popStyle();
+    colorMode(RGB);
   }
 }
 

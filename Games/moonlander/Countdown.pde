@@ -24,16 +24,11 @@ class Countdown {
   void endCountdown() {
     changeGameState(PLAYING);
     println("Countdown end!");
-    liftoff.rewind();
-    liftoff.play();
-    ambisound.setVolume(0.1);
-  }
+   }
   void startCountdown() {
     starttime=millis();
     bIsCountdownOver=false;
-    countdownsound.rewind();
-    countdownsound.play();
-    ambisound.setVolume(0.1);
+   
   }
   boolean getIsCountdownOver() {
     return bIsCountdownOver;

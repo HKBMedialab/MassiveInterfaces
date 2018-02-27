@@ -11,10 +11,19 @@ float MAXSPEED=200;
 float IMPULSE=10;
 float MAXTHRUSTFORCE=8;
 
+int THRUSTFORCE1=500;
+int THRUSTFORCE2=1400;
+int THRUSTFORCE3=5000;
+int THRUSTFORCE4=10000;
+
+int thrustforcearray[]={THRUSTFORCE1, THRUSTFORCE2, THRUSTFORCE3, THRUSTFORCE4};
+
+int SIDETHRUST=2000;
+
 //PLATTFORM
 final int PLATTFORMWIDTH=130;
 
-final int MAXLANDSPEED=20;
+final int MAXLANDSPEED=50;
 
 
 
@@ -25,6 +34,12 @@ final int PLAYING = 100;
 final int LANDED = 101;
 final int CRASHED = 102;
 
+
+// VOLUMES
+final float AMBIMAX=0.0f;
+final float AMBIMUTE=-15f;
+final float LIFTOFFMAX=10;
+final float LIFTOFFMUTE=-5;
 
 
 
@@ -70,9 +85,40 @@ float leftTriggerVal=200;
 float rightTriggerVal=500;
 
 
+float player1Steerval;
+float player1Trampolinval;
+float player1Shieldval;
+float player1Buttonval;
+
+float rawSteerSensorDataPlayer1;
+float lerpdPlayer1Steerval=0;
+float mappedPlayer1Steerval=0;
+float player1SteerLerpFact=0.05;
+float player1leftTriggerVal=200;
+float player1rightTriggerVal=500;
+float player1mapInMin= 200;
+float player1mapInMax=700;
+float player1mapOutMin =0;
+float player1mapOutMax=600;
 
 
 
+
+float player2Steerval;
+float player2Trampolinval;
+float player2Shieldval;
+float player2Buttonval;
+
+float rawSteerSensorDataPlayer2;
+float lerpdPlayer2Steerval=0;
+float mappedPlayer2Steerval=0;
+float player2SteerLerpFact=0.05;
+float player2leftTriggerVal=200;
+float player2rightTriggerVal=500;
+float player2mappInMin= 200;
+float player2mapInMax=700;
+float player2mapOutMin =0;
+float player2mapOutMax=600;
 
 
 // Arduino 
@@ -232,98 +278,67 @@ void setTocuosc(NetAddress _remoteLocation, String adress, float value) {
 void keyTyped() {
   println(key);
   switch(key) {
-
-
   case 'c':
     changeGameState(COUNTDOWN);
-    break;
-  case 'q':
-    boostsound.trigger();
     break;
 
   case 's':
     player1.setShieldActive(true);
     break;
 
-
   case 'y':
     player1.loadShield(5);
     break;
-
 
   case 'p':
     changeGameState(PLAYING);
     break;
 
-
   case 'w':
-    boostsound.trigger();
-
     player1.setThrust(true, 2000);
-    /* if (!boostsound.isPlaying()) {
-     boostsound.play(0);
-     
-     }*/
     break;
 
   case 'a':
-    player1.leftthrust=true;
+    player1.setLeftThrust(true, -SIDETHRUST);
     break;
 
   case 'd':
-    player1.rightthrust=true;
+    player1.setRightThrust(true, SIDETHRUST);
     break;
-
-
-
 
   case 'k':
     player2.setShieldActive(true);
     break;
 
   case 'i':
-    boostsound.trigger();
-
-    //  boostsound.play(0);
     player2.setThrust(true, 2000);
-
-    //if (!boostsound.isPlaying()) {
-    // }
     break;
 
   case 'j':
-    player2.leftthrust=true;
+    player1.setLeftThrust(true, -SIDETHRUST);
     break;
 
   case 'l':
-    player2.rightthrust=true;
+    player1.setRightThrust(true, SIDETHRUST);
     break;
 
 
 
 
   case '1':
-    for (CustomShape cs : polygons) {
-      cs.setThrustForce(100);
-    }
+    player1.setThrust(true, getThrustForceLevel(500));
     break;
-
-
   case '2':
-    for (CustomShape cs : polygons) {
-      cs.setThrustForce(1000);
-    }
+    player1.setThrust(true, getThrustForceLevel(1000));
     break;
-
-
   case '3':
-    for (CustomShape cs : polygons) {
-      //cs.setThrustForce(MAXTHRUSTFORCE);
-    }
+    player1.setThrust(true, getThrustForceLevel(3500));
     break;
-
+  case '4':
+    player1.setThrust(true, getThrustForceLevel(8000));
+    break;
   case 'r':
-    changeGameState(PLAYING);
+    reset();
     break;
   }
 }
@@ -386,6 +401,22 @@ void keyReleased() {
 
 
 void mousePressed() {
+  float var=mapPow(0.9, mouseX, 0, width, 0, 10000);
+  println("Mouse "+mouseX+" "+var);
+  player1.setThrust(true, int(var));
+
   // CustomShape cs = new CustomShape(mouseX, mouseY);
   // polygons.add(cs);
+}
+float mapPowInv(float pow, float value, float start1, float stop1, float start2, float stop2) {
+  float inT = norm(value, start1, stop1);
+  float outT = 1-(pow((1-inT), pow));
+  return map(outT, 0, 1, start2, stop2);
+}
+
+
+float mapPow(float pow, float value, float start1, float stop1, float start2, float stop2) {
+  float inT = norm(value, start1, stop1);
+  float outT = pow(inT, pow);
+  return map(outT, 0, 1, start2, stop2);
 }

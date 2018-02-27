@@ -42,6 +42,9 @@ Surface surface;
 ArrayList<CustomShape> polygons;
 CustomShape player1;
 CustomShape player2; 
+PVector positionPlayer1=new PVector(20, 500);
+PVector positionPlayer2=new PVector(200, 100);
+
 
 // STARTING UP
 Countdown countdown = new Countdown();
@@ -53,6 +56,8 @@ AudioSample boostsound;
 AudioSample hitsound;
 AudioPlayer countdownsound;
 AudioPlayer liftoff;
+AudioPlayer landed;
+
 
 
 //GAMESTATE
@@ -93,11 +98,11 @@ void setup() {
 
   // Make the players
   polygons = new ArrayList<CustomShape>();
-  CustomShape cs = new CustomShape(this, 20, 500, 1);
+  CustomShape cs = new CustomShape(this, positionPlayer1.x, positionPlayer1.y, 1);
   cs.setColor(color(0));
   cs.setGlowColor(color(255, 0, 0));
   polygons.add(cs);
-  cs = new CustomShape(this, 200, 100, 2);
+  cs = new CustomShape(this, positionPlayer2.x, positionPlayer2.y, 2);
   cs.setColor(color(0));
   cs.setGlowColor(color(255, 255, 255));
   polygons.add(cs);
@@ -122,12 +127,13 @@ void setup() {
   //------------------------- SOUND ----------------------------------
   minim = new Minim(this);
   ambisound = minim.loadFile("sounds/Game Ambient.mp3");
-  ambisound.setVolume(0.1);
+  ambisound.setGain(AMBIMUTE);
   ambisound.loop();  
   boostsound = minim.loadSample("sounds/boost.mp3", 512);
   hitsound = minim.loadSample("sounds/Hit.mp3", 512);
-    countdownsound = minim.loadFile("sounds/Countdown.mp3");
-    liftoff = minim.loadFile("sounds/Startliftoff.mp3");
+  countdownsound = minim.loadFile("sounds/Countdown.mp3");
+  liftoff = minim.loadFile("sounds/Startliftoff.mp3");
+  landed=minim.loadFile("sounds/Landing Plattform.mp3");
 
 
   //------------------------- GAMEHANDLER ----------------------------------
@@ -149,8 +155,27 @@ void draw() {
 
   plotterHandler();
 
+  textSize(50);
   fill(255);
-  text(frameRate, 200, 200);
+  text(frameRate, 20, 50);
+
+
+
+  lerpdPlayer1Steerval=lerp(lerpdPlayer1Steerval, player1Steerval, player1SteerLerpFact);
+  OscMessage myMessage = new OscMessage("/2/lerpdPlayer1Steerval");
+  myMessage.add(lerpdPlayer1Steerval); /* add an int to the osc message */
+  oscP5.send(myMessage, myRemoteLocation);
+  myMessage = new OscMessage("/2/mappedPlayer1Steerval");
+  myMessage.add(lerpdPlayer1Steerval); /* add an int to the osc message */
+  oscP5.send(myMessage, myRemoteLocation);
+
+  lerpdPlayer1Steerval=lerp(lerpdPlayer1Steerval, player1Steerval, player1SteerLerpFact);
+  myMessage = new OscMessage("/2/lerpdPlayer2Steerval");
+  myMessage.add(lerpdPlayer2Steerval); /* add an int to the osc message */
+  oscP5.send(myMessage, myRemoteLocation);
+  myMessage = new OscMessage("/2/mappedPlayer2Steerval");
+  myMessage.add(mappedPlayer2Steerval); /* add an int to the osc message */
+  oscP5.send(myMessage, myRemoteLocation);
 }
 
 
@@ -208,28 +233,41 @@ void serialEvent(Serial p) {
     String message = myPort.readStringUntil(lf);
     //remove the linefeed
     message = trim(message);
-
     String[] sensordata = split(message, ',');
 
-    //val=float(sensordata[0]);
+    player1Steerval =float(sensordata[0]);
+    player1Trampolinval =float(sensordata[1]);
+    player1Shieldval =float(sensordata[2]);
+    player1Buttonval =float(sensordata[3]);
 
-    float inval1 =float(sensordata[0]);
-    float inval2 =float(sensordata[1]);
-
-
-    lerpval=0.05;
-
-    lerpdval1=lerp(lerpdval1, inval1, lerpval);
-    lerpdval2=lerp(lerpdval2, inval1, lerpval);
-
+    player2Steerval =float(sensordata[4]);
+    player2Trampolinval =float(sensordata[5]);
+    player2Shieldval =float(sensordata[6]);
+    player2Buttonval =float(sensordata[7]);
 
 
-    if (inval1>0) {
-      float mappedinval1=map(lerpdval1, 200, 700, 0, 600);
-      float mappedinvalPowInv=mapPowInv(3, lerpdval1, 200, 700, 0, 600);
-      float mappedinvalPow=mapPow(0.1, lerpdval1, 200, 700, 0, 600);
 
-      println(lerpdval1+" "+mappedinval1);
+
+
+
+    lerpdPlayer2Steerval=lerp(lerpdPlayer2Steerval, player2Steerval, player2SteerLerpFact);
+
+
+    /*
+    float player1mapInMin= 200;
+     float player1mapInMax=700;
+     float player1mapOutMin =0;
+     float player1mapOutMax=600;
+     */
+
+    if (player1Steerval>0) {
+      float mappedinval1=map(lerpdPlayer1Steerval, player1mapInMin, player1mapInMax, player1mapOutMin, player1mapOutMax);
+      float mappedinvalPowInv=mapPowInv(3, lerpdPlayer1Steerval, player1mapInMin, player1mapInMax, player1mapOutMin, player1mapOutMax);
+      float mappedinvalPow=mapPow(0.1, lerpdPlayer1Steerval, player1mapInMin, player1mapInMax, player1mapOutMin, player1mapOutMax);
+
+
+
+
 
       val1=mappedinval1;
       val2=mappedinvalPowInv;
@@ -240,10 +278,6 @@ void serialEvent(Serial p) {
       //val3=lerp(val3, mappedinvalPow, lerpval);
     }
 
-    if (inval2>0) {
-      // float mappedinval2=map(inval2, 0, 300, 0, 1025);
-      // val3=lerp(val3, mappedinval2, lerpval);
-    }
 
 
 
@@ -266,6 +300,22 @@ void serialEvent(Serial p) {
   }
 }
 
+int getThrustForceLevel(float _thrustforce) {
+
+  int thrustforce;
+  float cdist=10000;
+  int index=0;
+  for (int i=0; i<thrustforcearray.length; i++) {
+    float d=abs(thrustforcearray[i]-_thrustforce);
+    println(d+" "+cdist);
+    if (d<cdist) {
+      cdist=d;
+      index=i;
+    }
+  }
+  thrustforce=(int)thrustforcearray[index];
+  return  thrustforce;
+}
 
 
 
@@ -362,7 +412,14 @@ void oscEvent(OscMessage theOscMessage) {
   myRemoteLocation = new NetAddress(address, 9000);
   String addr = theOscMessage.addrPattern();
   float  val  = theOscMessage.get(0).floatValue();
+
+  print(" addrpattern: "+theOscMessage.addrPattern());
+  println(" typetag: "+theOscMessage.typetag());
+
+
   if (addr.equals("/1/gravity")) { 
+    println("GRAVITY "+val);
+
     GRAVITY = val;
     box2d.setGravity(0, -GRAVITY);
     OscMessage myMessage = new OscMessage("/1/gravitylabel");
@@ -374,6 +431,8 @@ void oscEvent(OscMessage theOscMessage) {
     OscMessage myMessage = new OscMessage("/1/restitutionlabel");
     myMessage.add(val); /* add an int to the osc message */
     oscP5.send(myMessage, myRemoteLocation);
+    player1.setRestitution(RESTITUTION);
+    player2.setRestitution(RESTITUTION);
   } else if (addr.equals("/1/damping")) { 
     DAMPING = val;
     OscMessage myMessage = new OscMessage("/1/dampinglabel");
@@ -394,22 +453,91 @@ void oscEvent(OscMessage theOscMessage) {
     OscMessage myMessage = new OscMessage("/1/impulselabel");
     myMessage.add(val); /* add an int to the osc message */
     oscP5.send(myMessage, myRemoteLocation);
-  } else if (addr.equals("/1/maxthrustforce")) { 
+  } else if (addr.equals("/1/maxspeed")) { 
     MAXSPEED = val;
-    OscMessage myMessage = new OscMessage("/1/maxthrustforcelabel");
+    OscMessage myMessage = new OscMessage("/1/maxspeedlabel");
     myMessage.add(val); /* add an int to the osc message */
     oscP5.send(myMessage, myRemoteLocation);
-  } else if (addr.equals("/1/load")) { 
+  } else if (addr.equals("/2/player1mapInMin")) { 
+    player1mapInMin = val;
+    OscMessage  myMessage = new OscMessage("/2/player1mapInMinLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player1mapInMax")) { 
+    player1mapInMax = val;
+    OscMessage  myMessage = new OscMessage("/2/player1mapInMaxLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player1mapOutMin")) { 
+    player1mapOutMin = val;
+    OscMessage  myMessage = new OscMessage("/2/player1mapOutMinLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player1mapOutMax")) { 
+    player1mapOutMax = val;
+    OscMessage  myMessage = new OscMessage("/2/player1mapOutMaxLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player1leftTriggerVal")) { 
+    player1mapOutMax = val;
+    OscMessage  myMessage = new OscMessage("/2/player1leftTriggerValLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player1rightTriggerVal")) { 
+    player1mapOutMax = val;
+    OscMessage  myMessage = new OscMessage("/2/player1rightTriggerValLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player2mapInMin")) { 
+    player1mapInMin = val;
+    OscMessage  myMessage = new OscMessage("/2/player2mapInMinLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player2mapInMax")) { 
+    player1mapInMax = val;
+    OscMessage  myMessage = new OscMessage("/2/player2mapInMaxLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player2mapOutMin")) { 
+    player1mapOutMin = val;
+    OscMessage  myMessage = new OscMessage("/2/player2mapOutMinLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player2mapOutMax")) { 
+    player1mapOutMax = val;
+    OscMessage  myMessage = new OscMessage("/2/player2mapOutMaxLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player2leftTriggerVal")) { 
+    player1mapOutMax = val;
+    OscMessage  myMessage = new OscMessage("/2/player2leftTriggerValLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/2/player2rightTriggerVal")) { 
+    player1mapOutMax = val;
+    OscMessage  myMessage = new OscMessage("/2/player2rightTriggerValLabel");
+    myMessage.add(val);
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/3/load")) { 
     println("LOAD SETTINGS");
     loadSettings(myRemoteLocation);
-  } else if (addr.equals("/1/save")) { 
+  } else if (addr.equals("/3/save")) { 
     saveSettings();
+  } else if (addr.equals("/3/countdownbutton")) { 
+    changeGameState(COUNTDOWN);
+  } else if (addr.equals("/3/startbutton")) { 
+    changeGameState(PLAYING);
+  } else if (addr.equals("/3/resetbutton")) { 
+    reset();
   }
 }
 
 void loadSettings(NetAddress _myRemoteLocation) {
   settings = loadJSONObject("settings.json");
-  delay(10);
+
+  delay(20);
+  println("hoi");
+
   //world
   GRAVITY = settings.getFloat("Gravity");
   RESTITUTION = settings.getFloat("Restitution");
@@ -424,6 +552,16 @@ void loadSettings(NetAddress _myRemoteLocation) {
   for (CustomShape cs : polygons) {
     cs.setRestitution(RESTITUTION);
   }
+
+
+
+  player1leftTriggerVal=200;
+  player1rightTriggerVal=500;
+  player1mapInMin= 200;
+  player1mapInMax=700;
+  player1mapOutMin =0;
+  player1mapOutMax=600;
+
 
   OscMessage myMessage = new OscMessage("/1/gravitylabel");
   myMessage.add(GRAVITY); /* add an int to the osc message */
@@ -462,14 +600,111 @@ void loadSettings(NetAddress _myRemoteLocation) {
   myMessage = new OscMessage("/1/impulse");
   myMessage.add(IMPULSE); 
   oscP5.send(myMessage, _myRemoteLocation);
-  myMessage = new OscMessage("/1/maxthrustforcelabel");
-  myMessage.add(MAXTHRUSTFORCE); 
+  myMessage = new OscMessage("/1/maxspeedlabel");
+  myMessage.add(MAXSPEED); 
   oscP5.send(myMessage, _myRemoteLocation);
-  myMessage = new OscMessage("/1/maxthrustforce");
-  myMessage.add(MAXTHRUSTFORCE); 
+  myMessage = new OscMessage("/1/maxspeed");
+  myMessage.add(MAXSPEED); 
   oscP5.send(myMessage, _myRemoteLocation);
+
+
+  myMessage = new OscMessage("/2/player1mapInMin");
+  myMessage.add(player1mapInMin); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1mapInMinLabel");
+  myMessage.add(player1mapInMin); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1mapInMax");
+  myMessage.add(player1mapInMax); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1mapInMaxLabel");
+  myMessage.add(player1mapInMax); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1mapOutMin");
+  myMessage.add(player1mapOutMin); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1mapOutMinLabel");
+  myMessage.add(player1mapOutMin); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1mapOutMax");
+  myMessage.add(player1mapOutMax); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1mapOutMaxLabel");
+  myMessage.add(player1mapOutMax); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1leftTriggerVal");
+  myMessage.add(player1leftTriggerVal); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1leftTriggerValLabel");
+  myMessage.add(player1leftTriggerVal); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1rightTriggerVal");
+  myMessage.add(player1rightTriggerVal); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player1rightTriggerValLabel");
+  myMessage.add(player1rightTriggerVal); 
+  oscP5.send(myMessage, _myRemoteLocation);
+
+  myMessage = new OscMessage("/2/player2mapInMin");
+  myMessage.add(player1mapInMin); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2mapInMinLabel");
+  myMessage.add(player1mapInMin); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2mapInMax");
+  myMessage.add(player1mapInMax); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2mapInMaxLabel");
+  myMessage.add(player1mapInMax); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2mapOutMin");
+  myMessage.add(player1mapOutMin); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2mapOutMinLabel");
+  myMessage.add(player1mapOutMin); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2mapOutMax");
+  myMessage.add(player1mapOutMax); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2mapOutMaxLabel");
+  myMessage.add(player1mapOutMax); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2leftTriggerVal");
+  myMessage.add(player1leftTriggerVal); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2leftTriggerValLabel");
+  myMessage.add(player1leftTriggerVal); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2rightTriggerVal");
+  myMessage.add(player1rightTriggerVal); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/2/player2rightTriggerValLabel");
+  myMessage.add(player1rightTriggerVal); 
+  oscP5.send(myMessage, _myRemoteLocation);
+
+
+  /*
+  oscP5.send(myMessage, _myRemoteLocation);
+   myMessage = new OscMessage("/1/maxspeed");
+   myMessage.add(MAXSPEED); 
+   oscP5.send(myMessage, _myRemoteLocation);
+   myMessage = new OscMessage("/1/maxspeed");
+   myMessage.add(MAXSPEED); 
+   oscP5.send(myMessage, _myRemoteLocation);
+   myMessage = new OscMessage("/1/maxspeed");
+   myMessage.add(MAXSPEED); 
+   oscP5.send(myMessage, _myRemoteLocation);
+   myMessage = new OscMessage("/1/maxspeed");
+   myMessage.add(MAXSPEED); 
+   oscP5.send(myMessage, _myRemoteLocation);
+   */
 }
 
+void reset() {
+  player1.reset();
+  player2.reset();
+  changeGameState(STARTSCREEN);
+}
 
 void saveSettings() {
   JSONObject parameters = new JSONObject();
@@ -481,18 +716,4 @@ void saveSettings() {
   parameters.setFloat("Impulse", IMPULSE);
   parameters.setFloat("Maxthrustforce", MAXTHRUSTFORCE);
   saveJSONObject(parameters, "data/settings.json");
-}
-
-
-float mapPowInv(float pow, float value, float start1, float stop1, float start2, float stop2) {
-  float inT = norm(value, start1, stop1);
-  float outT = 1-(pow((1-inT), pow));
-  return map(outT, 0, 1, start2, stop2);
-}
-
-
-float mapPow(float pow, float value, float start1, float stop1, float start2, float stop2) {
-  float inT = norm(value, start1, stop1);
-  float outT = pow(inT, pow);
-  return map(outT, 0, 1, start2, stop2);
 }
