@@ -15,7 +15,6 @@ int THRUSTFORCE1=500;
 int THRUSTFORCE2=1400;
 int THRUSTFORCE3=5000;
 int THRUSTFORCE4=10000;
-
 int thrustforcearray[]={THRUSTFORCE1, THRUSTFORCE2, THRUSTFORCE3, THRUSTFORCE4};
 
 int SIDETHRUST=2000;
@@ -85,7 +84,10 @@ float leftTriggerVal=200;
 float rightTriggerVal=500;
 
 
+
+float player1SteerCalibration;
 float player1Steerval;
+
 float player1Trampolinval;
 float player1Shieldval;
 float player1Buttonval;
@@ -103,7 +105,7 @@ float player1mapOutMax=600;
 
 
 
-
+float player2SteerCalibration;
 float player2Steerval;
 float player2Trampolinval;
 float player2Shieldval;
@@ -115,7 +117,7 @@ float mappedPlayer2Steerval=0;
 float player2SteerLerpFact=0.05;
 float player2leftTriggerVal=200;
 float player2rightTriggerVal=500;
-float player2mappInMin= 200;
+float player2mapInMin= 200;
 float player2mapInMax=700;
 float player2mapOutMin =0;
 float player2mapOutMax=600;
