@@ -89,29 +89,32 @@ float rightTriggerVal=500;
 
 
 float player1SteerCalibration;
-float player1Steerval;
+float player1Steerval=0;
 
 float player1Trampolinval;
-float player1Shieldval;
+
+int player1Shieldval;
+int player1EnergyToAdd=0;
+
 float player1Buttonval;
 
-float rawSteerSensorDataPlayer1;
-float lerpdPlayer1Steerval=0;
+float rawSteerSensorDataPlayer1=0;
+float lerpdPlayer1Steerval=1;
 float mappedPlayer1Steerval=0;
-float player1SteerLerpFact=0.05;
-float player1leftTriggerVal=200;
-float player1rightTriggerVal=500;
-float player1mapInMin= 200;
-float player1mapInMax=700;
+float player1SteerLerpFact=0.9;
+float player1leftTriggerVal=-5;
+float player1rightTriggerVal=5;
+float player1mapInMin= 0;
+float player1mapInMax=20;
 float player1mapOutMin =0;
-float player1mapOutMax=600;
+float player1mapOutMax=5;
 
 
 
 float player2SteerCalibration;
 float player2Steerval;
 float player2Trampolinval;
-float player2Shieldval;
+int player2Shieldval;
 float player2Buttonval;
 
 float rawSteerSensorDataPlayer2;
@@ -132,7 +135,7 @@ float val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=false;
+boolean bUseArduino=true;
 
 
 
@@ -327,7 +330,9 @@ void keyTyped() {
     player1.setRightThrust(true, SIDETHRUST);
     break;
 
-
+  case '0':
+    calibrateSteeringPlayer1();
+    break;
 
 
   case '1':

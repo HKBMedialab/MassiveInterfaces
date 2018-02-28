@@ -29,7 +29,9 @@ import processing.serial.*;
 OscP5 oscP5;
 NetAddress myRemoteLocation;
 // gui settings 
-JSONObject settings;
+JSONObject steeringsettings;
+JSONObject worldsettings;
+
 
 // A reference to our box2d world
 Box2DProcessing box2d;
@@ -75,10 +77,10 @@ void setup() {
   // Arduino stuff
   println(Serial.list());
   String portName = Serial.list()[3];
-  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 9600 );
+  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1421", 9600 );
   if (bUseArduino) myPort.bufferUntil(lf);
-  
-  
+
+
   /* start oscP5, listening for incoming messages at port 8000 */
   oscP5 = new OscP5(this, 8000);
   myRemoteLocation = new NetAddress(oscListenToAdress, 8000);
@@ -124,7 +126,7 @@ void setup() {
 
   //------------------------- SETTINGS ----------------------------------
 
-  //loadSettings(myRemoteLocation);
+//  loadSettings(myRemoteLocation);
 
   //------------------------- SOUND ----------------------------------
   minim = new Minim(this);
@@ -150,6 +152,12 @@ void draw() {
   // -------------- Render Background ----------
   image(combinedbackground, 0, 0);
   image(test_landscape, 0, 0);
+
+  if (player1EnergyToAdd>0) {
+    player1.loadShield(player1EnergyToAdd);
+    player1EnergyToAdd=0;
+  }
+
   plattform.render();
 
   // -------------- Main Render Stuff  ----------
@@ -163,21 +171,21 @@ void draw() {
 
 
 
-  lerpdPlayer1Steerval=lerp(lerpdPlayer1Steerval, player1Steerval, player1SteerLerpFact);
   OscMessage myMessage = new OscMessage("/2/lerpdPlayer1Steerval");
-  myMessage.add(lerpdPlayer1Steerval); /* add an int to the osc message */
+  myMessage.add(player1Steerval); 
   oscP5.send(myMessage, myRemoteLocation);
-  myMessage = new OscMessage("/2/mappedPlayer1Steerval");
-  myMessage.add(lerpdPlayer1Steerval); /* add an int to the osc message */
-  oscP5.send(myMessage, myRemoteLocation);
+  //myMessage = new OscMessage("/2/mappedPlayer1Steerval");
+  //myMessage.add(player1Steerval); 
+  //oscP5.send(myMessage, myRemoteLocation);
 
-  lerpdPlayer1Steerval=lerp(lerpdPlayer1Steerval, player1Steerval, player1SteerLerpFact);
-  myMessage = new OscMessage("/2/lerpdPlayer2Steerval");
-  myMessage.add(lerpdPlayer2Steerval); /* add an int to the osc message */
-  oscP5.send(myMessage, myRemoteLocation);
-  myMessage = new OscMessage("/2/mappedPlayer2Steerval");
-  myMessage.add(mappedPlayer2Steerval); /* add an int to the osc message */
-  oscP5.send(myMessage, myRemoteLocation);
+
+  /* lerpdPlayer1Steerval=lerp(lerpdPlayer1Steerval, player1Steerval, player1SteerLerpFact);
+   myMessage = new OscMessage("/2/lerpdPlayer2Steerval");
+   myMessage.add(lerpdPlayer2Steerval); /* add an int to the osc message */
+  /* oscP5.send(myMessage, myRemoteLocation);
+   myMessage = new OscMessage("/2/mappedPlayer2Steerval");
+   myMessage.add(mappedPlayer2Steerval); /* add an int to the osc message */
+  /*oscP5.send(myMessage, myRemoteLocation);*/
 }
 
 
@@ -237,30 +245,48 @@ void serialEvent(Serial p) {
     message = trim(message);
     String[] sensordata = split(message, ',');
 
-    rawSteerSensorDataPlayer1 =float(sensordata[0]);
-    player1Trampolinval =float(sensordata[1]);
-    player1Shieldval =float(sensordata[2]);
-    player1Buttonval =float(sensordata[3]);
 
-    player2Steerval =float(sensordata[4]);
-    player2Trampolinval =float(sensordata[5]);
-    player2Shieldval =float(sensordata[6]);
-    player2Buttonval =float(sensordata[7]);
+    //  GET SHIELD STUFF PLAYER 1
+    player1Buttonval=int(sensordata[0]);
+    if (player1Buttonval==1) {
+      player1.setShieldActive(true);
+    }
 
+    int player1Shieldvaltemp=int(sensordata[1]);
+    int player1Shieldvaldiff=player1Shieldvaltemp-player1Shieldval;
+    player1Shieldval =player1Shieldvaltemp;
+    player1EnergyToAdd=player1Shieldvaldiff;
+    rawSteerSensorDataPlayer1 =float(sensordata[2]);
+   
+    //player1Trampolinval =float(sensordata[1]);
+    /*player1Shieldval =float(sensordata[2]);
+     player1Buttonval =float(sensordata[3]);
+     
+     player2Steerval =float(sensordata[4]);
+     player2Trampolinval =float(sensordata[5]);
+     player2Shieldval =float(sensordata[6]);
+     player2Buttonval =float(sensordata[7]);
+     */
 
     // Steerval
-    lerpdPlayer1Steerval=lerp(lerpdPlayer1Steerval, rawSteerSensorDataPlayer1, player1SteerLerpFact);
-    player1Steerval=lerpdPlayer1Steerval-player1SteerCalibration;
-    mappedPlayer1Steerval=map(abs(lerpdPlayer1Steerval), player1mapInMin, player1mapInMax, player1mapOutMin, player1mapOutMax);
-    if (player1Steerval<0)mappedPlayer1Steerval*=-1;
 
-    if (player1Steerval<leftTriggerVal) {
+    player1Steerval=rawSteerSensorDataPlayer1-player1SteerCalibration;
+    player1Steerval = player1Steerval - player1Steerval%0.01;
+
+   // mappedPlayer1Steerval=map(abs(lerpdPlayer1Steerval), player1mapInMin, player1mapInMax, player1mapOutMin, player1mapOutMax);
+   // if (player1Steerval<0)mappedPlayer1Steerval*=-1;
+
+    if (player1Steerval<player1leftTriggerVal) {
       player1.setLeftThrust(true, -SIDETHRUST);
+    } else {
+      player1.setLeftThrust(false);
     }
-    if (player1Steerval>rightTriggerVal) {
+    if (player1Steerval>player1rightTriggerVal) {
       player1.setRightThrust(true, SIDETHRUST);
+    } else {
+      player1.setRightThrust(false);
     }
-    lerpdPlayer2Steerval=lerp(lerpdPlayer2Steerval, player2Steerval, player2SteerLerpFact);
+   // lerpdPlayer2Steerval=lerp(lerpdPlayer2Steerval, player2Steerval, player2SteerLerpFact);
 
 
     /*  if (player1Steerval>0) {
@@ -281,22 +307,6 @@ void serialEvent(Serial p) {
      //val3=lerp(val3, mappedinvalPow, lerpval);
      }
      */
-
-
-
-    // CustomShape player0 =polygons.get(0);
-
-    if (val1<leftTriggerVal) {
-      player1.leftthrust=true;
-    } else {
-      player1.leftthrust=false;
-    }
-
-    if (val1>rightTriggerVal) {
-      player1.rightthrust=true;
-    } else {
-      player1.rightthrust=false;
-    }
   } 
   catch (Exception e) {
     println("Initialization exception");
@@ -519,26 +529,19 @@ void oscEvent(OscMessage theOscMessage) {
   } else if (addr.equals("/3/load")) { 
     println("LOAD All SETTINGS");
     loadAllSettings(myRemoteLocation);
-  }else if (addr.equals("/2/loadSteeringSettings")) { 
+  } else if (addr.equals("/2/loadSteeringSettings")) { 
     println("LOAD Steering SETTINGS");
     loadSteeringSettings(myRemoteLocation);
-  }
-  else if (addr.equals("/1/loadWorldSettings")) { 
+  } else if (addr.equals("/1/loadWorldSettings")) { 
     println("LOAD World SETTINGS");
     loadWorldSettings(myRemoteLocation);
-  }
-  
-  
-  else if (addr.equals("/3/save")) { 
+  } else if (addr.equals("/3/save")) { 
     saveAllSettings();
-  } 
-    else if (addr.equals("/3/saveSteeringSettings")) { 
+  } else if (addr.equals("/2/saveSteeringSettings")) { 
     saveSteeringSettings();
-  }
-    else if (addr.equals("/3/saveWorldSettings")) { 
+  } else if (addr.equals("/3/saveWorldSettings")) { 
     saveWorldSettings();
-  }
-  else if (addr.equals("/3/countdownbutton")) { 
+  } else if (addr.equals("/3/countdownbutton")) { 
     changeGameState(COUNTDOWN);
   } else if (addr.equals("/3/startbutton")) { 
     changeGameState(PLAYING);
@@ -552,21 +555,21 @@ void oscEvent(OscMessage theOscMessage) {
 }
 
 void loadWorldSettings(NetAddress _myRemoteLocation) {
-  settings = loadJSONObject("settings.json");
+  worldsettings = loadJSONObject("settings.json");
 
   delay(20);
   println("load world settings");
 
   //world
-  GRAVITY = settings.getFloat("Gravity");
-  RESTITUTION = settings.getFloat("Restitution");
-  DAMPING = settings.getFloat("Damping");
+  GRAVITY = worldsettings.getFloat("Gravity");
+  RESTITUTION = worldsettings.getFloat("Restitution");
+  DAMPING = worldsettings.getFloat("Damping");
 
   //vessel
-  DENSITY = settings.getFloat("Density");
-  MAXSPEED = settings.getFloat("Maxspeed");
-  IMPULSE = settings.getFloat("Impulse");
-  MAXTHRUSTFORCE = settings.getFloat("Maxthrustforce");
+  DENSITY = worldsettings.getFloat("Density");
+  MAXSPEED = worldsettings.getFloat("Maxspeed");
+  IMPULSE = worldsettings.getFloat("Impulse");
+  MAXTHRUSTFORCE = worldsettings.getFloat("Maxthrustforce");
 
   for (CustomShape cs : polygons) {
     cs.setRestitution(RESTITUTION);
@@ -618,27 +621,28 @@ void loadWorldSettings(NetAddress _myRemoteLocation) {
 }
 
 void loadSteeringSettings(NetAddress _myRemoteLocation) {
-  settings = loadJSONObject("steeringsettings.json");
+    println("load steering settings");
+
+  steeringsettings = loadJSONObject("steeringsettings.json");
 
   delay(20);
-  println("load steering settings");
+  //println("load steering settings");
 
-  player1leftTriggerVal=settings.getFloat("player1leftTriggerVal");
-  player1rightTriggerVal=settings.getFloat("player1rightTriggerVal");
-  player1mapInMin= settings.getFloat("player1mapInMin");
-  player1mapInMax=settings.getFloat("player1mapInMax");
-  player1mapOutMin =settings.getFloat("player1mapOutMin");
-  player1mapOutMax=settings.getFloat("player1mapOutMax");
-  player1SteerCalibration=settings.getFloat("player1SteerCalibration");
+  player1leftTriggerVal=steeringsettings.getFloat("player1leftTriggerVal");
+  player1rightTriggerVal=steeringsettings.getFloat("player1rightTriggerVal");
+  player1mapInMin= steeringsettings.getFloat("player1mapInMin");
+  player1mapInMax=steeringsettings.getFloat("player1mapInMax");
+  player1mapOutMin =steeringsettings.getFloat("player1mapOutMin");
+  player1mapOutMax=steeringsettings.getFloat("player1mapOutMax");
+  player1SteerCalibration=steeringsettings.getFloat("player1SteerCalibration");
 
-  player2leftTriggerVal=settings.getFloat("player2leftTriggerVal");
-  player2rightTriggerVal=settings.getFloat("player2rightTriggerVal");
-  player2mapInMin= settings.getFloat("player2mapInMin");
-  player2mapInMax=settings.getFloat("player2mapInMax");
-  player2mapOutMin =settings.getFloat("player2mapOutMin");
-  player2mapOutMax=settings.getFloat("player2mapOutMax");
-
-  player2SteerCalibration=settings.getFloat("player2SteerCalibration");
+  player2leftTriggerVal=steeringsettings.getFloat("player2leftTriggerVal");
+  player2rightTriggerVal=steeringsettings.getFloat("player2rightTriggerVal");
+  player2mapInMin= steeringsettings.getFloat("player2mapInMin");
+  player2mapInMax=steeringsettings.getFloat("player2mapInMax");
+  player2mapOutMin =steeringsettings.getFloat("player2mapOutMin");
+  player2mapOutMax=steeringsettings.getFloat("player2mapOutMax");
+  player2SteerCalibration=steeringsettings.getFloat("player2SteerCalibration");
 
 
   OscMessage myMessage = new OscMessage("/2/player1mapInMin");
@@ -679,40 +683,40 @@ void loadSteeringSettings(NetAddress _myRemoteLocation) {
   oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/2/player2mapInMin");
-  myMessage.add(player1mapInMin); 
+  myMessage.add(player2mapInMin); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2mapInMinLabel");
-  myMessage.add(player1mapInMin); 
+  myMessage.add(player2mapInMin); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2mapInMax");
-  myMessage.add(player1mapInMax); 
+  myMessage.add(player2mapInMax); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2mapInMaxLabel");
-  myMessage.add(player1mapInMax); 
+  myMessage.add(playe21mapInMax); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2mapOutMin");
-  myMessage.add(player1mapOutMin); 
+  myMessage.add(player2mapOutMin); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2mapOutMinLabel");
-  myMessage.add(player1mapOutMin); 
+  myMessage.add(player2mapOutMin); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2mapOutMax");
-  myMessage.add(player1mapOutMax); 
+  myMessage.add(player2mapOutMax); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2mapOutMaxLabel");
-  myMessage.add(player1mapOutMax); 
+  myMessage.add(player2mapOutMax); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2leftTriggerVal");
-  myMessage.add(player1leftTriggerVal); 
+  myMessage.add(player2leftTriggerVal); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2leftTriggerValLabel");
-  myMessage.add(player1leftTriggerVal); 
+  myMessage.add(player2leftTriggerVal); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2rightTriggerVal");
-  myMessage.add(player1rightTriggerVal); 
+  myMessage.add(player2rightTriggerVal); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player2rightTriggerValLabel");
-  myMessage.add(player1rightTriggerVal); 
+  myMessage.add(player2rightTriggerVal); 
   oscP5.send(myMessage, _myRemoteLocation);
 
   myMessage = new OscMessage("/2/player1SteerCalibration");
@@ -756,6 +760,7 @@ void saveWorldSettings() {
 }
 
 void saveSteeringSettings() {
+  println("SAVE STEERING");
   JSONObject parameters = new JSONObject();
   parameters.setFloat("player1leftTriggerVal", player1leftTriggerVal);
   parameters.setFloat("player1rightTriggerVal", player1rightTriggerVal);
@@ -764,12 +769,13 @@ void saveSteeringSettings() {
   parameters.setFloat("player1mapOutMin", player1mapOutMin);
   parameters.setFloat("player1mapOutMax", player1mapOutMax);
   parameters.setFloat("player1SteerCalibration", player1SteerCalibration);
-  parameters.setFloat("player1leftTriggerVal", player2leftTriggerVal);
-  parameters.setFloat("player1rightTriggerVal", player2rightTriggerVal);
-  parameters.setFloat("player1mapInMin", player2mapInMin);
-  parameters.setFloat("player1mapInMax", player2mapInMax);
-  parameters.setFloat("player1mapOutMin", player2mapOutMin);
-  parameters.setFloat("player1mapOutMax", player2mapOutMax);
+  parameters.setFloat("player2leftTriggerVal", player2leftTriggerVal);
+  parameters.setFloat("player2rightTriggerVal", player2rightTriggerVal);
+  
+  parameters.setFloat("player2mapInMin", player2mapInMin);
+  parameters.setFloat("player2mapInMax", player2mapInMax);
+  parameters.setFloat("player2mapOutMin", player2mapOutMin);
+  parameters.setFloat("player2mapOutMax", player2mapOutMax);
   parameters.setFloat("player2SteerCalibration", player2SteerCalibration);
   saveJSONObject(parameters, "data/steeringsettings.json");
 }
@@ -792,7 +798,7 @@ void reset() {
 }
 
 void calibrateSteeringPlayer1() {
-  player1SteerCalibration=player1Steerval;
+  player1SteerCalibration=rawSteerSensorDataPlayer1;
   OscMessage myMessage = new OscMessage("/2/player1SteerCalibration");
   myMessage.add(player1SteerCalibration); 
   oscP5.send(myMessage, myRemoteLocation);

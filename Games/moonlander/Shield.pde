@@ -65,6 +65,8 @@ class Shield {
       }
     }
 
+
+
     for (int i = particles.size()-1; i >= 0; i--) {
       LoadParticle p = particles.get(i);
       if (p.removeMe) {
@@ -136,7 +138,7 @@ class Shield {
   void loadShield(int amt) {
     energycounter+=amt;
     println(energycounter);
-    for (int i=0; i<amt*2; i++) {
+   for (int i=0; i<amt*2; i++) {
       colorMode(HSB);
       color c=color(random(50, 150), random(30, 120), 255);
       colorMode(RGB);
