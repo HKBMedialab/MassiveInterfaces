@@ -1,0 +1,16 @@
+{
+    "player1leftTriggerVal":-200,
+    "player1rightTriggerVal":200,
+    "player1mapInMin":200,
+    "player1mapInMax":700,
+    "player1mapOutMin":0,
+    "player1mapOutMax":600,
+    "player1SteerCalibration":100,
+    "player2leftTriggerVal":-200,
+    "player2rightTriggerVal":200,
+    "player2mapInMin":200,
+    "player2mapInMax":700,
+    "player2mapOutMin":0,
+    "player2mapOutMax":600,
+    "player2SteerCalibration":100
+}

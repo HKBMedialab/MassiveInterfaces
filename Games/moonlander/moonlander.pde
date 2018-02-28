@@ -77,9 +77,11 @@ void setup() {
   String portName = Serial.list()[3];
   if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 9600 );
   if (bUseArduino) myPort.bufferUntil(lf);
+  
+  
   /* start oscP5, listening for incoming messages at port 8000 */
   oscP5 = new OscP5(this, 8000);
-  myRemoteLocation = new NetAddress("127.0.0.1 ", 8000);
+  myRemoteLocation = new NetAddress(oscListenToAdress, 8000);
 
 
   // ------------------------- WORLD ----------------------------------
@@ -454,11 +456,6 @@ void oscEvent(OscMessage theOscMessage) {
     OscMessage myMessage = new OscMessage("/1/impulselabel");
     myMessage.add(val); /* add an int to the osc message */
     oscP5.send(myMessage, myRemoteLocation);
-  } else if (addr.equals("/1/maxspeed")) { 
-    MAXSPEED = val;
-    OscMessage myMessage = new OscMessage("/1/maxspeedlabel");
-    myMessage.add(val); /* add an int to the osc message */
-    oscP5.send(myMessage, myRemoteLocation);
   } else if (addr.equals("/2/player1mapInMin")) { 
     player1mapInMin = val;
     OscMessage  myMessage = new OscMessage("/2/player1mapInMinLabel");
@@ -520,11 +517,28 @@ void oscEvent(OscMessage theOscMessage) {
     myMessage.add(val);
     oscP5.send(myMessage, myRemoteLocation);
   } else if (addr.equals("/3/load")) { 
-    println("LOAD SETTINGS");
-    loadSettings(myRemoteLocation);
-  } else if (addr.equals("/3/save")) { 
-    saveSettings();
-  } else if (addr.equals("/3/countdownbutton")) { 
+    println("LOAD All SETTINGS");
+    loadAllSettings(myRemoteLocation);
+  }else if (addr.equals("/2/loadSteeringSettings")) { 
+    println("LOAD Steering SETTINGS");
+    loadSteeringSettings(myRemoteLocation);
+  }
+  else if (addr.equals("/1/loadWorldSettings")) { 
+    println("LOAD World SETTINGS");
+    loadWorldSettings(myRemoteLocation);
+  }
+  
+  
+  else if (addr.equals("/3/save")) { 
+    saveAllSettings();
+  } 
+    else if (addr.equals("/3/saveSteeringSettings")) { 
+    saveSteeringSettings();
+  }
+    else if (addr.equals("/3/saveWorldSettings")) { 
+    saveWorldSettings();
+  }
+  else if (addr.equals("/3/countdownbutton")) { 
     changeGameState(COUNTDOWN);
   } else if (addr.equals("/3/startbutton")) { 
     changeGameState(PLAYING);
@@ -537,11 +551,11 @@ void oscEvent(OscMessage theOscMessage) {
   }
 }
 
-void loadSettings(NetAddress _myRemoteLocation) {
+void loadWorldSettings(NetAddress _myRemoteLocation) {
   settings = loadJSONObject("settings.json");
 
   delay(20);
-  println("hoi");
+  println("load world settings");
 
   //world
   GRAVITY = settings.getFloat("Gravity");
@@ -557,24 +571,6 @@ void loadSettings(NetAddress _myRemoteLocation) {
   for (CustomShape cs : polygons) {
     cs.setRestitution(RESTITUTION);
   }
-
-
-  player1leftTriggerVal=settings.getFloat("player1leftTriggerVal");
-  player1rightTriggerVal=settings.getFloat("player1rightTriggerVal");
-  player1mapInMin= settings.getFloat("player1mapInMin");
-  player1mapInMax=settings.getFloat("player1mapInMax");
-  player1mapOutMin =settings.getFloat("player1mapOutMin");
-  player1mapOutMax=settings.getFloat("player1mapOutMax");
-  player1SteerCalibration=settings.getFloat("player1SteerCalibration");
-
-  player2leftTriggerVal=settings.getFloat("player2leftTriggerVal");
-  player2rightTriggerVal=settings.getFloat("player2rightTriggerVal");
-  player2mapInMin= settings.getFloat("player2mapInMin");
-  player2mapInMax=settings.getFloat("player2mapInMax");
-  player2mapOutMin =settings.getFloat("player2mapOutMin");
-  player2mapOutMax=settings.getFloat("player2mapOutMax");
-
-  player2SteerCalibration=settings.getFloat("player2SteerCalibration");
 
   OscMessage myMessage = new OscMessage("/1/gravitylabel");
   myMessage.add(GRAVITY); /* add an int to the osc message */
@@ -619,9 +615,33 @@ void loadSettings(NetAddress _myRemoteLocation) {
   myMessage = new OscMessage("/1/maxspeed");
   myMessage.add(MAXSPEED); 
   oscP5.send(myMessage, _myRemoteLocation);
+}
+
+void loadSteeringSettings(NetAddress _myRemoteLocation) {
+  settings = loadJSONObject("steeringsettings.json");
+
+  delay(20);
+  println("load steering settings");
+
+  player1leftTriggerVal=settings.getFloat("player1leftTriggerVal");
+  player1rightTriggerVal=settings.getFloat("player1rightTriggerVal");
+  player1mapInMin= settings.getFloat("player1mapInMin");
+  player1mapInMax=settings.getFloat("player1mapInMax");
+  player1mapOutMin =settings.getFloat("player1mapOutMin");
+  player1mapOutMax=settings.getFloat("player1mapOutMax");
+  player1SteerCalibration=settings.getFloat("player1SteerCalibration");
+
+  player2leftTriggerVal=settings.getFloat("player2leftTriggerVal");
+  player2rightTriggerVal=settings.getFloat("player2rightTriggerVal");
+  player2mapInMin= settings.getFloat("player2mapInMin");
+  player2mapInMax=settings.getFloat("player2mapInMax");
+  player2mapOutMin =settings.getFloat("player2mapOutMin");
+  player2mapOutMax=settings.getFloat("player2mapOutMax");
+
+  player2SteerCalibration=settings.getFloat("player2SteerCalibration");
 
 
-  myMessage = new OscMessage("/2/player1mapInMin");
+  OscMessage myMessage = new OscMessage("/2/player1mapInMin");
   myMessage.add(player1mapInMin); 
   oscP5.send(myMessage, _myRemoteLocation);
   myMessage = new OscMessage("/2/player1mapInMinLabel");
@@ -702,34 +722,11 @@ void loadSettings(NetAddress _myRemoteLocation) {
   myMessage = new OscMessage("/2/player2SteerCalibration");
   myMessage.add(player2SteerCalibration); 
   oscP5.send(myMessage, _myRemoteLocation);
-
-
-
-
-  /*
-  oscP5.send(myMessage, _myRemoteLocation);
-   myMessage = new OscMessage("/1/maxspeed");
-   myMessage.add(MAXSPEED); 
-   oscP5.send(myMessage, _myRemoteLocation);
-   myMessage = new OscMessage("/1/maxspeed");
-   myMessage.add(MAXSPEED); 
-   oscP5.send(myMessage, _myRemoteLocation);
-   myMessage = new OscMessage("/1/maxspeed");
-   myMessage.add(MAXSPEED); 
-   oscP5.send(myMessage, _myRemoteLocation);
-   myMessage = new OscMessage("/1/maxspeed");
-   myMessage.add(MAXSPEED); 
-   oscP5.send(myMessage, _myRemoteLocation);
-   */
 }
 
-void reset() {
-  player1.reset();
-  player2.reset();
-  changeGameState(STARTSCREEN);
-}
 
-void saveSettings() {
+
+void saveWorldSettings() {
   JSONObject parameters = new JSONObject();
   parameters.setFloat("Gravity", GRAVITY);
   parameters.setFloat("Restitution", RESTITUTION);
@@ -739,6 +736,27 @@ void saveSettings() {
   parameters.setFloat("Impulse", IMPULSE);
   parameters.setFloat("Maxthrustforce", MAXTHRUSTFORCE);
 
+  /*parameters.setFloat("player1leftTriggerVal", player1leftTriggerVal);
+   parameters.setFloat("player1rightTriggerVal", player1rightTriggerVal);
+   parameters.setFloat("player1mapInMin", player1mapInMin);
+   parameters.setFloat("player1mapInMax", player1mapInMax);
+   parameters.setFloat("player1mapOutMin", player1mapOutMin);
+   parameters.setFloat("player1mapOutMax", player1mapOutMax);
+   parameters.setFloat("player1SteerCalibration", player1SteerCalibration);
+   
+   parameters.setFloat("player1leftTriggerVal", player2leftTriggerVal);
+   parameters.setFloat("player1rightTriggerVal", player2rightTriggerVal);
+   parameters.setFloat("player1mapInMin", player2mapInMin);
+   parameters.setFloat("player1mapInMax", player2mapInMax);
+   parameters.setFloat("player1mapOutMin", player2mapOutMin);
+   parameters.setFloat("player1mapOutMax", player2mapOutMax);
+   parameters.setFloat("player2SteerCalibration", player2SteerCalibration);
+   */
+  saveJSONObject(parameters, "data/settings.json");
+}
+
+void saveSteeringSettings() {
+  JSONObject parameters = new JSONObject();
   parameters.setFloat("player1leftTriggerVal", player1leftTriggerVal);
   parameters.setFloat("player1rightTriggerVal", player1rightTriggerVal);
   parameters.setFloat("player1mapInMin", player1mapInMin);
@@ -746,7 +764,6 @@ void saveSettings() {
   parameters.setFloat("player1mapOutMin", player1mapOutMin);
   parameters.setFloat("player1mapOutMax", player1mapOutMax);
   parameters.setFloat("player1SteerCalibration", player1SteerCalibration);
-
   parameters.setFloat("player1leftTriggerVal", player2leftTriggerVal);
   parameters.setFloat("player1rightTriggerVal", player2rightTriggerVal);
   parameters.setFloat("player1mapInMin", player2mapInMin);
@@ -754,8 +771,24 @@ void saveSettings() {
   parameters.setFloat("player1mapOutMin", player2mapOutMin);
   parameters.setFloat("player1mapOutMax", player2mapOutMax);
   parameters.setFloat("player2SteerCalibration", player2SteerCalibration);
+  saveJSONObject(parameters, "data/steeringsettings.json");
+}
 
-  saveJSONObject(parameters, "data/settings.json");
+
+void loadAllSettings(NetAddress _myRemoteLocation) {
+  loadWorldSettings( _myRemoteLocation);
+  loadSteeringSettings( _myRemoteLocation);
+}
+
+void saveAllSettings() {
+  saveWorldSettings();
+  saveSteeringSettings();
+}
+
+void reset() {
+  player1.reset();
+  player2.reset();
+  changeGameState(STARTSCREEN);
 }
 
 void calibrateSteeringPlayer1() {

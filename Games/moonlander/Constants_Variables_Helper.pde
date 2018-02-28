@@ -1,3 +1,6 @@
+//OSCADRESS
+String oscListenToAdress="147.87.39.19"; // ipad Adress
+
 
 // WORLD
 float GRAVITY = 40;
