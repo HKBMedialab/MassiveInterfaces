@@ -102,6 +102,7 @@ class CustomShape {
       if (thrustcounter>IMPULSE) {
         thrust=false;
         thrustcounter=0;
+        thrustforce=0;
       }
     }
 
@@ -118,12 +119,13 @@ class CustomShape {
     }
 
 
-
+    textSize(50);
 
     // We look at each body and get its screen position
     Vec2 pos = box2d.getBodyPixelCoord(body);
     // Get its angle of rotation
     float a = body.getAngle();
+    text(thrustforce, pos.x+50, pos.y);
 
 
 
@@ -148,7 +150,16 @@ class CustomShape {
 
 
     pushMatrix();
-    tint(glowcolor, 250);
+    //tint(glowcolor, 250);
+    //println(map(sin(float(frameCount)/5),-1,1,0,255));
+    if(shield.getEnergyCounter()>MAXENERGY-5){
+     tint(glowcolor, map(sin(float(frameCount)/5),-1,1,0,255));
+    }else{
+        tint(glowcolor, 250);
+
+    }
+ 
+  //  tint(lerpColor(col,glowcolor , map(shield.getEnergyCounter(),0,MAXENERGY,0,1)),250);
     // blendMode(SCREEN);
     image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
     //  image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
@@ -157,9 +168,8 @@ class CustomShape {
     //float alpha=map(sin(blinktheta), -1, 1, 100, 255);
     //blinktheta+=0.1*shield.getEnergyCounter();
     //tint(col, alpha);
-    tint(col);
-
-
+    tint(lerpColor(col,glowcolor , map(shield.getEnergyCounter(),0,MAXENERGY,0,1)));
+tint(col);
     // if (pos.x>(width/2-PLATTFORMWIDTH/2) &&pos.x<(width/2+PLATTFORMWIDTH/2)) {
     //   tint(color(255, 0, 255));
     // }
@@ -293,10 +303,11 @@ class CustomShape {
 
   void setThrust(boolean _thrust, int _thrustforce) {
     if (useCounter) {
-      if (!thrust) {
-        thrust=_thrust;
+      //if (!thrust) {
+      if ( _thrust&&!thrust) boostsound.trigger();
+      thrust=_thrust;
+      if (_thrustforce>thrustforce) {
         thrustforce=_thrustforce;
-        boostsound.trigger();
       }
     } else {
       thrust=_thrust;
@@ -336,7 +347,7 @@ class CustomShape {
   // Change color when hit
   void hitSurface() {
     Vec2 pos = box2d.getBodyPixelCoord(body);
-    if (pos.x>(width/2-15) &&pos.x<(width/2+15)) {
+    if (pos.x>(width/2-PLATTFORMWIDTH/2) &&pos.x<(width/2+PLATTFORMWIDTH/2)) {
       Vec2 velocity = body.getLinearVelocity();
       float speed = velocity.length();
       println("++++++++++++++"+speed);
@@ -408,7 +419,7 @@ class CustomShape {
     shield.setColor(_col);
   }
 
-  void loadShield(int amt) {
+  void loadShield(float amt) {
     shield.loadShield(amt);
   }
 

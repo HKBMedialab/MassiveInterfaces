@@ -4,7 +4,7 @@ String oscListenToAdress="147.87.39.19"; // ipad Adress
 
 // WORLD
 float GRAVITY = 40;
-float RESTITUTION=1.7;
+float RESTITUTION=1.2;
 float DAMPING = 1;
 
 
@@ -15,10 +15,19 @@ float IMPULSE=10;
 float MAXTHRUSTFORCE=8;
 
 int THRUSTFORCE1=500;
-int THRUSTFORCE2=1400;
-int THRUSTFORCE3=5000;
+int THRUSTFORCE2=1000;
+int THRUSTFORCE3=2000;
 int THRUSTFORCE4=10000;
-int thrustforcearray[]={THRUSTFORCE1, THRUSTFORCE2, THRUSTFORCE3, THRUSTFORCE4};
+
+int THRUSTFORCETTRIGGER1=50;
+int THRUSTFORCETTRIGGER2=150;
+int THRUSTFORCETTRIGGER3=250;
+int THRUSTFORCETTRIGGER4=300;
+
+int thrustforcearray[][]={{THRUSTFORCETTRIGGER1, THRUSTFORCE1}, {THRUSTFORCETTRIGGER2, THRUSTFORCE2}, {THRUSTFORCETTRIGGER3, THRUSTFORCE3}, {THRUSTFORCETTRIGGER4, THRUSTFORCE4}};
+
+
+
 
 int SIDETHRUST=2000;
 
@@ -26,6 +35,8 @@ int SIDETHRUST=2000;
 final int PLATTFORMWIDTH=130;
 
 final int MAXLANDSPEED=50;
+final float MAXENERGY=300;
+
 
 
 
@@ -91,7 +102,7 @@ float rightTriggerVal=500;
 float player1SteerCalibration;
 float player1Steerval=0;
 
-float player1Trampolinval;
+float player1Trampolinval=0;
 
 int player1Shieldval;
 int player1EnergyToAdd=0;
@@ -108,6 +119,11 @@ float player1mapInMin= 0;
 float player1mapInMax=20;
 float player1mapOutMin =0;
 float player1mapOutMax=5;
+float player1TrampolinCalibration=286;
+
+  //ArrayList<PVector> tramplinValPlayer1 = new ArrayList<PVector>();
+  FloatList tramplinValuesPlayer1;
+
 
 
 
@@ -121,12 +137,12 @@ float rawSteerSensorDataPlayer2;
 float lerpdPlayer2Steerval=0;
 float mappedPlayer2Steerval=0;
 float player2SteerLerpFact=0.05;
-float player2leftTriggerVal=200;
-float player2rightTriggerVal=500;
-float player2mapInMin= 200;
-float player2mapInMax=700;
+float player2leftTriggerVal=-5;
+float player2rightTriggerVal=5;
+float player2mapInMin= 0;
+float player2mapInMax=100;
 float player2mapOutMin =0;
-float player2mapOutMax=600;
+float player2mapOutMax=100;
 
 
 // Arduino 
@@ -135,7 +151,7 @@ float val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=true;
+boolean bUseArduino=false;
 
 
 
@@ -233,10 +249,10 @@ void plotterHandler() {
 
 
   if (renderPlotter) {
-    float mleftTriggerVal=map(leftTriggerVal, 0, 1025, 0, pH);
-    float mrightTriggerVal=map(rightTriggerVal, 0, 1025, 0, pH);
+    float mplayer1leftTriggerVal=map(player1leftTriggerVal, 0, 10, 0, pH);
+    float mplayer1rightTriggerVal=map(player1rightTriggerVal, 0, 10, 0, pH);
 
-
+    textSize(20);
     colorMode(RGB);
     rectMode(CORNER);
     blendMode(BLEND);
@@ -245,27 +261,64 @@ void plotterHandler() {
     fill(255, 0, 0, 100);
     rect(0, 0, width, pH);
     stroke(255, 0, 0, 200);
-    line(0, mleftTriggerVal, width, mleftTriggerVal);
+    //  line(0, mplayer1leftTriggerVal, width, mplayer1leftTriggerVal);
     stroke(0, 0, 255, 200);
-    line(0, mrightTriggerVal, width, mrightTriggerVal);
-    plotterA0.plott(0, 600, 0, pH);
-    translate(0, pH);
-    fill(0, 255, 0, 100);
-    rect(0, 0, width, pH);
-    stroke(255, 0, 0, 200);
-    line(0, mleftTriggerVal, width, mleftTriggerVal);
-    stroke(0, 0, 255, 200);
-    line(0, mrightTriggerVal, width, mrightTriggerVal);
-    plotterA1.plott(0, 600, 0, pH);
+    //line(0, mplayer1rightTriggerVal, width, mplayer1rightTriggerVal);
+
+    stroke(255, 0, 255, 200);
+
+    
+
+    int scale=500;
+    float mplayer1trigger=map(THRUSTFORCETTRIGGER1, -scale, scale, 0, pH);
+    line(0, mplayer1trigger, width, mplayer1trigger);
+    mplayer1trigger=map(THRUSTFORCETTRIGGER2, -scale, scale, 0, pH);
+    line(0, mplayer1trigger, width, mplayer1trigger); 
+    mplayer1trigger=map(THRUSTFORCETTRIGGER3, -scale, scale, 0, pH);
+    line(0, mplayer1trigger, width, mplayer1trigger); 
+    mplayer1trigger=map(THRUSTFORCETTRIGGER4, -scale, scale, 0, pH);
+    line(0, mplayer1trigger, width, mplayer1trigger);
+
+
+
+    plotterA0.plott(-scale, scale, 0, pH);
+
+
+    float myline=map(500, 0, 1000, 0, pH);
+
 
     translate(0, pH);
-    fill(0, 0, 255, 100);
-    rect(0, 0, width, pH);
-    stroke(255, 0, 0, 100);
-    line(0, mleftTriggerVal, width, mleftTriggerVal);
-    stroke(0, 0, 255, 100);
-    line(0, mrightTriggerVal, width, mrightTriggerVal);
-    plotterA2.plott(0, 600, 0, pH);
+     fill(0, 255, 0, 100);
+     rect(0, 0, width, pH);
+     stroke(255, 0, 0, 200);
+     line(0, myline, width, myline);
+     stroke(0, 0, 255, 200);
+    
+     /*
+     myline=map(1000, 0, 1000, 0, pH);
+     line(0, myline, width, myline);
+      myline=map(3000, 0, 1000, 0, pH);
+     line(0, myline, width, myline);
+     */
+    mplayer1trigger=map(THRUSTFORCETTRIGGER1, -scale, scale, 0, pH);
+    line(0, mplayer1trigger, width, mplayer1trigger);
+    mplayer1trigger=map(THRUSTFORCETTRIGGER2, -scale, scale, 0, pH);
+    line(0, mplayer1trigger, width, mplayer1trigger); 
+    mplayer1trigger=map(THRUSTFORCETTRIGGER3, -scale, scale, 0, pH);
+    line(0, mplayer1trigger, width, mplayer1trigger); 
+    mplayer1trigger=map(THRUSTFORCETTRIGGER4, -scale, scale, 0, pH);
+    line(0, mplayer1trigger, width, mplayer1trigger);
+     
+     plotterA1.plott(-scale, scale, 0, pH);
+     /*
+     translate(0, pH);
+     fill(0, 0, 255, 100);
+     rect(0, 0, width, pH);
+     stroke(255, 0, 0, 100);
+     line(0, mleftTriggerVal, width, mleftTriggerVal);
+     stroke(0, 0, 255, 100);
+     line(0, mrightTriggerVal, width, mrightTriggerVal);
+     plotterA2.plott(0, 600, 0, pH);*/
     popMatrix();
     //colorMode(HSB);
     rectMode(CENTER);
@@ -330,22 +383,26 @@ void keyTyped() {
     player1.setRightThrust(true, SIDETHRUST);
     break;
 
+  case 't':
+    calibrateTrampoilnPlayer1();
+    break;
+
   case '0':
     calibrateSteeringPlayer1();
     break;
 
 
   case '1':
-    player1.setThrust(true, getThrustForceLevel(500));
+    player1.setThrust(true, getThrustForceLevel(51));
     break;
   case '2':
-    player1.setThrust(true, getThrustForceLevel(1000));
+    player1.setThrust(true, getThrustForceLevel(151));
     break;
   case '3':
-    player1.setThrust(true, getThrustForceLevel(3500));
+    player1.setThrust(true, getThrustForceLevel(251));
     break;
   case '4':
-    player1.setThrust(true, getThrustForceLevel(8000));
+    player1.setThrust(true, getThrustForceLevel(301));
     break;
   case 'r':
     reset();

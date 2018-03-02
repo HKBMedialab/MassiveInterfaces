@@ -6,8 +6,8 @@ class Shield {
   float [] boundingbox = new float[4];
   float hue, sat, bright, alpha;
 
-  int energycounter=0;
-  int startenergy=200; //Debug
+  float energycounter=0;
+  int startenergy=50; //Debug
 
   int shielStartAddTimer=0;
   int addTime=1400;
@@ -41,6 +41,7 @@ class Shield {
   }
 
   void update(Vec2 _pos) {
+    
     if (getShieldIsActive())energycounter--;
     if (energycounter<0) {
       energycounter=0;
@@ -49,7 +50,7 @@ class Shield {
     }
 
     for (Ring r : shieldrings) {
-      r.update(energycounter);
+      r.update(int(energycounter));
     }
 
 
@@ -91,7 +92,12 @@ class Shield {
       r.render();
     }
     popStyle();
-
+    
+   /* pushStyle();
+    fill(255,0,0);
+    rect(0,-energycounter,50,energycounter); 
+    popStyle();
+*/
     pushStyle();
     for (LoadParticle p : particles) {
       p.render();
@@ -118,7 +124,7 @@ class Shield {
 
     if (bIsActive && energycounter>0) {
       shieldrings.clear();
-      energycounter=startenergy;
+      //energycounter=startenergy;
       shielStartAddTimer=millis();
       Ring r = new Ring();
       shieldrings.add(r);
@@ -135,14 +141,14 @@ class Shield {
   }
 
 
-  void loadShield(int amt) {
+  void loadShield(float amt) {
+        if(energycounter>MAXENERGY)return;
+
     energycounter+=amt;
-    println(energycounter);
-   for (int i=0; i<amt*2; i++) {
+   for (int i=0; i<ceil(amt*2); i++) {
       colorMode(HSB);
       color c=color(random(50, 150), random(30, 120), 255);
       colorMode(RGB);
-
       LoadParticle p = new LoadParticle(c);
       particles.add(p);
     }
@@ -152,7 +158,7 @@ class Shield {
     setColor=_col;
   }
 
-  int getEnergyCounter() {
+  float getEnergyCounter() {
     return energycounter;
   }
 }
@@ -213,8 +219,7 @@ class Ring {
 
   float hue=130;
   float starthue=130;
-
-  float endHue=150;
+  float endHue=50;
 
   float energy=200;
 
@@ -241,7 +246,7 @@ class Ring {
 
     //if (alpha>200 && hue<endHue) {
     // hue++;
-    float h=map(energy, 200, 0, 0, 10);
+    float h=map(energy, MAXENERGY, 0, 0, 10);
     //println(hue+" "+h);
     hue=starthue+h;
     //}
@@ -259,7 +264,7 @@ class Ring {
      ellipse(0, 0, rWidth, rHeight );
      */
     strokeWeight(15);
-
+colorMode(HSB);
     stroke(hue, 255, 255, alpha);
     ellipse(0, 0, rWidth, rHeight );
 

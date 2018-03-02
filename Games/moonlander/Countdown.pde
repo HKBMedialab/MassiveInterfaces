@@ -17,18 +17,27 @@ class Countdown {
   }
   void display() {
     textSize(100);
+    pushStyle();
+    textAlign(CENTER, CENTER); 
+    textSize(60);
+
     int time=startseconds-floor((millis()-starttime)/1000)-1;
-    text(time+1, 11, 100);
+    fill(255, 0, 0);
+    text(time+1, (width/2), int(height/2));
+    fill(0);
+    textSize(50);
+
+    text(time+1, (width/2), int(height/2));
+    popStyle();
   }
 
   void endCountdown() {
     changeGameState(PLAYING);
     println("Countdown end!");
-   }
+  }
   void startCountdown() {
     starttime=millis();
     bIsCountdownOver=false;
-   
   }
   boolean getIsCountdownOver() {
     return bIsCountdownOver;

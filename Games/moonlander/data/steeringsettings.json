@@ -2,15 +2,15 @@
   "player1SteerCalibration": 7,
   "player2mapOutMax": 20,
   "player1mapInMin": 0,
-  "player2rightTriggerVal": 5,
+  "player2rightTriggerVal": 3,
   "player2mapInMin": 0,
   "player1mapOutMin": 0,
-  "player2leftTriggerVal": -5,
+  "player2leftTriggerVal": -3,
   "player2mapOutMin": 0,
-  "player1leftTriggerVal": -5,
+  "player1leftTriggerVal": -3,
   "player1mapInMax": 20,
-  "player1mapOutMax": 5,
+  "player1mapOutMax": 3,
   "player2SteerCalibration": 0,
-  "player1rightTriggerVal": 5,
-  "player2mapInMax": 5
+  "player1rightTriggerVal": 3,
+  "player2mapInMax": 3
 }

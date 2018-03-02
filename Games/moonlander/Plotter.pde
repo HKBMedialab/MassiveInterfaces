@@ -5,8 +5,8 @@ class Plotter {
 
   ArrayList<PVector> PVal = new ArrayList<PVector>();
   ArrayList<PVector> peaks = new ArrayList<PVector>();
-  int peaktrigger= 500;
-  int minpeaktrigger=0;
+  int peaktrigger= 5;
+  int minpeaktrigger=-5;
 
   int maxlength=100;
   int stretch=3;
@@ -15,6 +15,14 @@ class Plotter {
   int debugtranslateY=50;
 
   Plotter() {
+    maxlength=(width-leftpadding-rightpadding)/stretch;
+    values = new FloatList();
+    positions = new FloatList();
+  }
+
+  Plotter(int _peaktrigger, int _minpeaktrigger) {
+    peaktrigger=_peaktrigger;
+    minpeaktrigger=_minpeaktrigger;
     maxlength=(width-leftpadding-rightpadding)/stretch;
     values = new FloatList();
     positions = new FloatList();
@@ -113,6 +121,9 @@ class Plotter {
 
     float peakTY=map(peaktrigger, _inMin, _inMax, _min, _max);
     float minpeakTY=map(minpeaktrigger, _inMin, _inMax, _min, _max);
+    
+      //  float peakTY=map(peaktrigger, _inMin, _inMax, _min, _max);
+
     line(0, peakTY, width, peakTY);
     line(0, minpeakTY, width, minpeakTY);
     fill(255);
@@ -133,11 +144,11 @@ class Plotter {
       float val1=values.get(values.size()-2);
       float val2=values.get(values.size()-1);
 
-      if (val2>val1 && _val<val2 && _val>peaktrigger) {
+      if (val2>val1 && _val<val2 && val2>peaktrigger) {
         peaks.add(new PVector(float(width-rightpadding-stretch), val2));
       }
 
-      if (val2<val1 && _val>val2 && _val<minpeaktrigger) {
+      if (val2<val1 && _val>val2 && val2<minpeaktrigger) {
         peaks.add(new PVector(float(width-rightpadding-stretch), val2));
       }
     }
