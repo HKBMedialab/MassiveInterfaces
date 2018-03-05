@@ -31,7 +31,7 @@ void changeGameState(int _state) {
     landed.rewind();
     landed.setVolume(100);
     landed.play();
-    ambisound.shiftGain(ambisound.getGain(), AMBIMUTE, 1000);
+    ambisound.shiftGain(ambisound.getGain(), 0, 1000);
     break;
   }
 }
