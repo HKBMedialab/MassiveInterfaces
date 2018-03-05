@@ -139,13 +139,17 @@ void setup() {
   hitsound = minim.loadSample("sounds/Hit.mp3", 512);
   countdownsound = minim.loadFile("sounds/Countdown.mp3");
   liftoff = minim.loadFile("sounds/Startliftoff.mp3");
-  landed=minim.loadFile("sounds/Landing Plattform.mp3");
+  landed=minim.loadFile("sounds/Landing Plattform_short.mp3");
 
+
+  winPlayer1=loadImage("grafik/win_red.png");
+  winPlayer2=loadImage("grafik/win_white.png");
 
   //------------------------- GAMEHANDLER ----------------------------------
   gamestate=STARTSCREEN;
 
   tramplinValuesPlayer1 = new FloatList();
+  countdown.setup();
 }
 
 void draw() {
@@ -297,10 +301,10 @@ void serialEvent(Serial p) {
     val1=player1Trampolinval-player1TrampolinCalibration;
 
     float tempval=player1Trampolinval-player1TrampolinCalibration;
-    
-    
-    
-    
+
+
+
+
     if (tramplinValuesPlayer1.size()>2) {
       float Tval1=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-2);
       float Tval2=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-1);

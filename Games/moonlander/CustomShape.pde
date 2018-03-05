@@ -6,7 +6,7 @@ class CustomShape {
   int thrustcounter=0;
   boolean useCounter=true;
 
-  int thrustforce=100;
+  int thrustforce=0;
   int leftthrustforce=-500;
   int rightthrustforce=500;
 
@@ -29,6 +29,7 @@ class CustomShape {
   PImage shipglow2;
   PImage shipglow3;
 
+  color shieldcolor;
 
 
   int id;
@@ -37,6 +38,8 @@ class CustomShape {
 
   float startX;
   float startY;
+
+  float blink=0;
 
 
   Vec2 posBefore; 
@@ -88,6 +91,8 @@ class CustomShape {
     body.applyForce(force, pos);
   }
 
+
+
   // Drawing the box
   void display() {
     shield.update(box2d.getBodyPixelCoord(body));
@@ -106,10 +111,11 @@ class CustomShape {
       }
     }
 
-    if (thrust)verticalThrust();
-    if (leftthrust )leftThrust();
-    if (rightthrust )rightThrust();
-
+    if (gamestate==PLAY) {
+      if (thrust)verticalThrust();
+      if (leftthrust )leftThrust();
+      if (rightthrust )rightThrust();
+    }
 
     // limit to max Speed;
     Vec2 velocity = body.getLinearVelocity();
@@ -152,14 +158,16 @@ class CustomShape {
     pushMatrix();
     //tint(glowcolor, 250);
     //println(map(sin(float(frameCount)/5),-1,1,0,255));
-    if(shield.getEnergyCounter()>MAXENERGY-5){
-     tint(glowcolor, map(sin(float(frameCount)/5),-1,1,0,255));
-    }else{
-        tint(glowcolor, 250);
-
+    if (shield.getEnergyCounter()>MAXENERGY-50) {
+      // float btheta=map(shield.getEnergyCounter(),0,MAXENERGY,0,0.5);
+      //   blink+=btheta;
+      tint(glowcolor, map(sin((float(frameCount)/5)), -1, 1, 0, 255));
+      //      tint(glowcolor, map(sin(btheta),-1,1,0,255));
+    } else {
+      tint(glowcolor, 250);
     }
- 
-  //  tint(lerpColor(col,glowcolor , map(shield.getEnergyCounter(),0,MAXENERGY,0,1)),250);
+
+    //  tint(lerpColor(col,glowcolor , map(shield.getEnergyCounter(),0,MAXENERGY,0,1)),250);
     // blendMode(SCREEN);
     image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
     //  image(shipglow1, -shipglow1.width/2, -shipglow1.height/2);
@@ -168,8 +176,8 @@ class CustomShape {
     //float alpha=map(sin(blinktheta), -1, 1, 100, 255);
     //blinktheta+=0.1*shield.getEnergyCounter();
     //tint(col, alpha);
-    tint(lerpColor(col,glowcolor , map(shield.getEnergyCounter(),0,MAXENERGY,0,1)));
-tint(col);
+    tint(lerpColor(col, shieldcolor, map(shield.getEnergyCounter(), 0, MAXENERGY-5, 0, 1)));
+    //tint(col);
     // if (pos.x>(width/2-PLATTFORMWIDTH/2) &&pos.x<(width/2+PLATTFORMWIDTH/2)) {
     //   tint(color(255, 0, 255));
     // }
@@ -352,6 +360,7 @@ tint(col);
       float speed = velocity.length();
       println("++++++++++++++"+speed);
       if (speed<MAXLANDSPEED  || shield.getShieldIsActive()) {
+        winner=this;
         changeGameState(LANDED);
       } else {
         // changeGameState(CRASHED);
@@ -413,6 +422,12 @@ tint(col);
 
   void setGlowColor(color _col) {
     glowcolor=_col;
+
+    colorMode(HSB, 255);
+    shieldcolor=color(hue(glowcolor), saturation(glowcolor)-20, brightness(glowcolor)-100);
+    println("hue "+hue(glowcolor)+" "+hue(shieldcolor));
+
+    colorMode(RGB);
   }
 
   void setShieldColor(color _col) {

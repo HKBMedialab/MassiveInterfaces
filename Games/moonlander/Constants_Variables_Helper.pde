@@ -121,8 +121,8 @@ float player1mapOutMin =0;
 float player1mapOutMax=5;
 float player1TrampolinCalibration=286;
 
-  //ArrayList<PVector> tramplinValPlayer1 = new ArrayList<PVector>();
-  FloatList tramplinValuesPlayer1;
+//ArrayList<PVector> tramplinValPlayer1 = new ArrayList<PVector>();
+FloatList tramplinValuesPlayer1;
 
 
 
@@ -173,6 +173,16 @@ PVector planet2_speed=new PVector(0, 0);
 PVector planet3_speed=new PVector(0, 0);
 
 PGraphics combinedbackground;
+
+
+PImage winPlayer1;
+PImage winPlayer2;
+float winnerrotation=0;
+float winnerscale=0;
+
+
+
+CustomShape winner;
 
 void bakeBackground() {
   background_back = loadImage("backgrounds/test_bg.png");
@@ -267,7 +277,7 @@ void plotterHandler() {
 
     stroke(255, 0, 255, 200);
 
-    
+
 
     int scale=500;
     float mplayer1trigger=map(THRUSTFORCETTRIGGER1, -scale, scale, 0, pH);
@@ -288,16 +298,16 @@ void plotterHandler() {
 
 
     translate(0, pH);
-     fill(0, 255, 0, 100);
-     rect(0, 0, width, pH);
-     stroke(255, 0, 0, 200);
-     line(0, myline, width, myline);
-     stroke(0, 0, 255, 200);
-    
-     /*
+    fill(0, 255, 0, 100);
+    rect(0, 0, width, pH);
+    stroke(255, 0, 0, 200);
+    line(0, myline, width, myline);
+    stroke(0, 0, 255, 200);
+
+    /*
      myline=map(1000, 0, 1000, 0, pH);
      line(0, myline, width, myline);
-      myline=map(3000, 0, 1000, 0, pH);
+     myline=map(3000, 0, 1000, 0, pH);
      line(0, myline, width, myline);
      */
     mplayer1trigger=map(THRUSTFORCETTRIGGER1, -scale, scale, 0, pH);
@@ -308,9 +318,9 @@ void plotterHandler() {
     line(0, mplayer1trigger, width, mplayer1trigger); 
     mplayer1trigger=map(THRUSTFORCETTRIGGER4, -scale, scale, 0, pH);
     line(0, mplayer1trigger, width, mplayer1trigger);
-     
-     plotterA1.plott(-scale, scale, 0, pH);
-     /*
+
+    plotterA1.plott(-scale, scale, 0, pH);
+    /*
      translate(0, pH);
      fill(0, 0, 255, 100);
      rect(0, 0, width, pH);
@@ -376,11 +386,11 @@ void keyTyped() {
     break;
 
   case 'j':
-    player1.setLeftThrust(true, -SIDETHRUST);
+    player2.setLeftThrust(true, -SIDETHRUST);
     break;
 
   case 'l':
-    player1.setRightThrust(true, SIDETHRUST);
+    player2.setRightThrust(true, SIDETHRUST);
     break;
 
   case 't':
@@ -407,6 +417,11 @@ void keyTyped() {
   case 'r':
     reset();
     break;
+
+  
+  case 'g':
+  changeGameState(LANDED);
+break;
   }
 }
 

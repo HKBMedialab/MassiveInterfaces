@@ -1,5 +1,4 @@
 
-
 // GAMESTATE HELPER / HANDLER
 void changeGameState(int _state) {
   println(_state);
@@ -8,6 +7,9 @@ void changeGameState(int _state) {
 
   case STARTSCREEN:
     ambisound.shiftGain(ambisound.getGain(), AMBIMAX, 1000);
+
+
+
 
     break;
 
@@ -27,11 +29,13 @@ void changeGameState(int _state) {
     break;
 
   case LANDED:
-    println(landed.getVolume()+" "+landed.getGain());
+    winnerrotation=0;
+    winnerscale=0;
+    println("gain"+landed.getGain());
     landed.rewind();
-    landed.setVolume(100);
+    landed.setGain(100);
     landed.play();
-    ambisound.shiftGain(ambisound.getGain(), 0, 1000);
+    ambisound.shiftGain(ambisound.getGain(), -20, 500);
     break;
   }
 }
@@ -68,7 +72,33 @@ void gameStateRenderHandler() {
   case LANDED:
     player1.display();
     player2.display();
-    text("YOU WIN", width/2, height/2);
+
+
+    //   text("YOU WIN", width/2, height/2);
+
+   
+
+
+
+    pushMatrix();
+    translate(width/2, height/2);
+    rotate(winnerrotation);
+    scale(winnerscale);
+    if (winner==player1) {
+      image(winPlayer1, -winPlayer1.width/2, -winPlayer1.height/2);
+    }
+    if (winner==player2) {
+      image(winPlayer2, -winPlayer1.width/2, -winPlayer1.height/2);
+    }
+    popMatrix();
+    if (winnerrotation<=10*PI) {
+      winnerrotation+=0.25;
+    }
+    if (winnerscale<1) {
+      winnerscale+=0.008;
+    }
+
+
     break;
 
   case CRASHED:
@@ -76,9 +106,13 @@ void gameStateRenderHandler() {
     break;
 
   case STARTSCREEN:
-    text("START", width/2, height/2);
+    // text("START", width/2, height/2);
     player1.display();
     player2.display();
+
+
+    //  constrain(,0,10*PI);
+    // constrain(winnerscale+=0.01,0,1);
     break;
 
   case COUNTDOWN:
