@@ -12,5 +12,7 @@
   "player1mapOutMax": 3,
   "player2SteerCalibration": 0,
   "player1rightTriggerVal": 3,
-  "player2mapInMax": 3
+  "player2mapInMax": 3,
+    "player1TrampolinCalibration":286,
+    "player2TrampolinCalibration":286
 }

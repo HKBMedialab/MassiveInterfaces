@@ -92,7 +92,7 @@ void gameStateRenderHandler() {
     }
     popMatrix();
     if (winnerrotation<=10*PI) {
-      winnerrotation+=0.25;
+   //   winnerrotation+=0.25;
     }
     if (winnerscale<1) {
       winnerscale+=0.008;

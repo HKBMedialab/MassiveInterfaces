@@ -3,39 +3,39 @@ String oscListenToAdress="147.87.39.19"; // ipad Adress
 
 
 // WORLD
-float GRAVITY = 40;
-float RESTITUTION=1.2;
+float GRAVITY = 180;
+float RESTITUTION=0.8;
 float DAMPING = 1;
 
 
 // SPACESHIP
 float DENSITY = 0.25;
-float MAXSPEED=200;
-float IMPULSE=10;
+float MAXSPEED=100;
+float IMPULSE=7;
 float MAXTHRUSTFORCE=8;
 
-int THRUSTFORCE1=500;
-int THRUSTFORCE2=1000;
-int THRUSTFORCE3=2000;
-int THRUSTFORCE4=10000;
+int THRUSTFORCE1=1000;
+int THRUSTFORCE2=5000;
+int THRUSTFORCE3=10000;
+int THRUSTFORCE4=30000;
 
-int THRUSTFORCETTRIGGER1=50;
-int THRUSTFORCETTRIGGER2=150;
-int THRUSTFORCETTRIGGER3=250;
-int THRUSTFORCETTRIGGER4=300;
+int THRUSTFORCETTRIGGER1=100;
+int THRUSTFORCETTRIGGER2=180;
+int THRUSTFORCETTRIGGER3=290;
+int THRUSTFORCETTRIGGER4=500;
 
 int thrustforcearray[][]={{THRUSTFORCETTRIGGER1, THRUSTFORCE1}, {THRUSTFORCETTRIGGER2, THRUSTFORCE2}, {THRUSTFORCETTRIGGER3, THRUSTFORCE3}, {THRUSTFORCETTRIGGER4, THRUSTFORCE4}};
 
 
 
 
-int SIDETHRUST=2000;
+int SIDETHRUST=3000;
 
 //PLATTFORM
 final int PLATTFORMWIDTH=130;
 
 final int MAXLANDSPEED=50;
-final float MAXENERGY=300;
+final float MAXENERGY=200;
 
 
 
@@ -64,6 +64,7 @@ final float LIFTOFFMUTE=-5;
 
 
 // SENSORVALUES
+/*
 public float trampolinval = 0;
 public float steerval = 0;
 public float rightSteer=235;
@@ -73,7 +74,9 @@ public float trampolinscalemin = 1;//7;
 public float trampolinscalemax = 12;//198;
 float minVal=400;
 float maxVal=0;
-float incomingThrustBefore=0;
+
+
+float incomingThrustBefore=0;*/
 
 // Plotter Vars
 Plotter plotterA0; 
@@ -88,8 +91,9 @@ float pH=255;
 float val1=0;
 float val2=0;      // Data received from the serial port
 float val3=0;      // Data received from the serial port
-float lerpval=0.3;
+float lerpval=0.2;
 
+/*
 float lerpdval1=0;
 float lerpdval2=0;      // Data received from the serial port
 float lerpdval3=0;      // Data received from the serial port
@@ -97,48 +101,65 @@ float lerpdval3=0;      // Data received from the serial port
 float leftTriggerVal=200;
 float rightTriggerVal=500;
 
+*/
 
+// STEERING
+float rawSteerSensorDataPlayer1=0; // Raw Data from Sensor
+float player1SteerCalibration=10; // calibrate Position to get values smaller and bigger than 0
+float player1Steerval=0; // value for the steerdiff from 0; Actual steering! 
 
-float player1SteerCalibration;
-float player1Steerval=0;
+// Shield
+int player1Shieldval; // position of rotary encoder
+int player1EnergyToAdd=0; // buffer for rotary encoder, cant add energy outside the update cycle as arraylist crashes
+float player1Buttonval; // shieldbutton
 
+FloatList tramplinValuesPlayer1; // value buffer to find maximum
 float player1Trampolinval=0;
+float player1RawTrampolinData=0;
+float player1TrampolinCalibration=286;
+float player1TrampolThrust=0;
+float player1peak=0;
 
-int player1Shieldval;
-int player1EnergyToAdd=0;
+FloatList player1Thrustbuffer; // value buffer to find maximum
 
-float player1Buttonval;
 
-float rawSteerSensorDataPlayer1=0;
-float lerpdPlayer1Steerval=1;
+// Temp and map stuff. not sure if still needed...
+
+float lerpdPlayer1Steerval=0;
 float mappedPlayer1Steerval=0;
 float player1SteerLerpFact=0.9;
-float player1leftTriggerVal=-5;
-float player1rightTriggerVal=5;
+float player1leftTriggerVal=-2;
+float player1rightTriggerVal=2;
 float player1mapInMin= 0;
 float player1mapInMax=20;
 float player1mapOutMin =0;
 float player1mapOutMax=5;
-float player1TrampolinCalibration=286;
-
-//ArrayList<PVector> tramplinValPlayer1 = new ArrayList<PVector>();
-FloatList tramplinValuesPlayer1;
 
 
 
+// STEERING
+float rawSteerSensorDataPlayer2=0; // Raw Data from Sensor
+float player2SteerCalibration=10; // calibrate Position to get values smaller and bigger than 0
+float player2Steerval=0; // value for the steerdiff from 0; Actual steering! 
 
-float player2SteerCalibration;
-float player2Steerval;
-float player2Trampolinval;
-int player2Shieldval;
-float player2Buttonval;
+// Shield
+int player2Shieldval; // position of rotary encoder
+int player2EnergyToAdd=0; // buffer for rotary encoder, cant add energy outside the update cycle as arraylist crashes
+float player2Buttonval; // shieldbutton
 
-float rawSteerSensorDataPlayer2;
+FloatList tramplinValuesPlayer2; // value buffer to find maximum
+float player2Trampolinval=0;
+float player2RawTrampolinData=0;
+float player2TrampolinCalibration=286;
+float player2TrampolThrust=0;
+float player2peak=0;
+
+
 float lerpdPlayer2Steerval=0;
 float mappedPlayer2Steerval=0;
 float player2SteerLerpFact=0.05;
-float player2leftTriggerVal=-5;
-float player2rightTriggerVal=5;
+float player2leftTriggerVal=-2;
+float player2rightTriggerVal=2;
 float player2mapInMin= 0;
 float player2mapInMax=100;
 float player2mapOutMin =0;
@@ -151,7 +172,7 @@ float val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=false;
+boolean bUseArduino=true;
 
 
 
@@ -246,7 +267,7 @@ void plotterHandler() {
    popMatrix();
    */
 
-
+ if (renderPlotter) {
   plotterA0.addValue(val1);
   plotterA0.update();
 
@@ -256,7 +277,7 @@ void plotterHandler() {
   plotterA2.addValue(val3);
   plotterA2.update();
 
-
+ }
 
   if (renderPlotter) {
     float mplayer1leftTriggerVal=map(player1leftTriggerVal, 0, 10, 0, pH);

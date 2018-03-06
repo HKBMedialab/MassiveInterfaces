@@ -1,4 +1,4 @@
-//defaults write -g ApplePressAndHoldEnabled -bool false
+//defaults write -g ApplePressAndHoldEnabled -bool false //<>//
 //defaults write -g ApplePressAndHoldEnabled -bool true
 
 import shiffman.box2d.*;
@@ -79,7 +79,7 @@ void setup() {
   // Arduino stuff
   println(Serial.list());
   String portName = Serial.list()[3];
-  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 9600 );
+  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1421", 9600 );
   if (bUseArduino) myPort.bufferUntil(lf);
 
 
@@ -119,12 +119,12 @@ void setup() {
   bakeBackground();
 
   //------------------------- PLOTTER ----------------------------------
-  plotterA0=new Plotter(200, -200);
-  plotterA1=new Plotter(THRUSTFORCETTRIGGER1, -200);
+  plotterA0=new Plotter(50, -50);
+  plotterA1=new Plotter(50, -50);
   plotterA2=new Plotter();
 
-  println("+++++++++rightTriggerVal++++++++++++"+rightTriggerVal);
-  println("+++++++++++leftTriggerVal++++++++++"+leftTriggerVal);
+  //println("+++++++++rightTriggerVal++++++++++++"+rightTriggerVal);
+  //println("+++++++++++leftTriggerVal++++++++++"+leftTriggerVal);
 
   //------------------------- SETTINGS ----------------------------------
 
@@ -149,6 +149,9 @@ void setup() {
   gamestate=STARTSCREEN;
 
   tramplinValuesPlayer1 = new FloatList();
+  tramplinValuesPlayer2 = new FloatList();
+
+  player1Thrustbuffer= new FloatList();
   countdown.setup();
 }
 
@@ -165,6 +168,85 @@ void draw() {
     player1.loadShield(player1EnergyToAdd/5);
     player1EnergyToAdd=0;
   }
+
+
+  if (player2EnergyToAdd>0) {
+    player2.loadShield(player2EnergyToAdd/5);
+    player2EnergyToAdd=0;
+  }
+
+
+  lerpdPlayer1Steerval=lerp(lerpdPlayer1Steerval, player1Steerval, lerpval);
+
+  if (lerpdPlayer1Steerval-player1SteerCalibration<player1leftTriggerVal) {
+    player1.setLeftThrust(true, -SIDETHRUST);
+  } else {
+    player1.setLeftThrust(false);
+  }
+  if (lerpdPlayer1Steerval-player1SteerCalibration>player1rightTriggerVal) {
+    player1.setRightThrust(true, SIDETHRUST);
+  } else {
+    player1.setRightThrust(false);
+  }
+
+
+  lerpdPlayer2Steerval=lerp(lerpdPlayer2Steerval, player2Steerval, lerpval);
+
+  if (lerpdPlayer2Steerval-player2SteerCalibration<player2leftTriggerVal) {
+    player2.setLeftThrust(true, -SIDETHRUST);
+  } else {
+    player2.setLeftThrust(false);
+  }
+  if (lerpdPlayer2Steerval-player2SteerCalibration>player2rightTriggerVal) {
+    player2.setRightThrust(true, SIDETHRUST);
+  } else {
+    player2.setRightThrust(false);
+  }
+
+
+
+
+  float tempval=0;
+  //  val1=player1Trampolinval;
+  // look for maximum
+  if (tramplinValuesPlayer1.size()>2) {
+    float Tval1=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-2);
+    float Tval2=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-1);
+    if (Tval2>Tval1 && player1Trampolinval<Tval2 &&Tval2>THRUSTFORCETTRIGGER1) {
+      tempval=Tval2;
+      player1peak=Tval2;
+    }
+  }
+  tramplinValuesPlayer1.append(player1Trampolinval);
+  //val2=tempval;
+  player1TrampolThrust=tempval;
+  if (player1TrampolThrust>THRUSTFORCETTRIGGER1) {
+    player1.setThrust(true, int(getThrustForceLevel(player1TrampolThrust)));
+  }
+  if (tramplinValuesPlayer1.size()>3)tramplinValuesPlayer1.remove(0); // keep the list short...
+
+
+
+
+  float tempval2=0;
+  //  val1=player1Trampolinval;
+  // look for maximum
+  if (tramplinValuesPlayer2.size()>2) {
+    float Tval1=tramplinValuesPlayer2.get(tramplinValuesPlayer2.size()-2);
+    float Tval2=tramplinValuesPlayer2.get(tramplinValuesPlayer2.size()-1);
+    if (Tval2>Tval1 && player2Trampolinval<Tval2 &&Tval2>THRUSTFORCETTRIGGER1) {
+      tempval2=Tval2;
+      player2peak=Tval2;
+    }
+  }
+  tramplinValuesPlayer2.append(player2Trampolinval);
+  //val2=tempval;
+  player2TrampolThrust=tempval2;
+  if (player2TrampolThrust>THRUSTFORCETTRIGGER1) {
+    player2.setThrust(true, int(getThrustForceLevel(player2TrampolThrust)));
+  }
+  if (tramplinValuesPlayer2.size()>3)tramplinValuesPlayer2.remove(0); // keep the list short...
+
 
   plattform.render();
 
@@ -261,86 +343,46 @@ void serialEvent(Serial p) {
     if (player1Buttonval==1) {
       player1.setShieldActive(true);
     }
-
     int player1Shieldvaltemp=int(sensordata[1]);
     int player1Shieldvaldiff=player1Shieldvaltemp-player1Shieldval;
     player1Shieldval =player1Shieldvaltemp;
     player1EnergyToAdd=player1Shieldvaldiff;
+
+
+    // STEERING
     rawSteerSensorDataPlayer1 =float(sensordata[2]);
+    //  player1Steerval=rawSteerSensorDataPlayer1-player1SteerCalibration;
+    //  player1Steerval = player1Steerval - player1Steerval%0.01;
+    player1Steerval=rawSteerSensorDataPlayer1;
 
-    //player1Trampolinval =float(sensordata[1]);
-    /*player1Shieldval =float(sensordata[2]);
-     player1Buttonval =float(sensordata[3]);
-     
-     player2Steerval =float(sensordata[4]);
-     player2Trampolinval =float(sensordata[5]);
-     player2Shieldval =float(sensordata[6]);
-     player2Buttonval =float(sensordata[7]);
-     */
-
-    // Steerval
-
-    player1Steerval=rawSteerSensorDataPlayer1-player1SteerCalibration;
-    player1Steerval = player1Steerval - player1Steerval%0.01;
-
-    // mappedPlayer1Steerval=map(abs(lerpdPlayer1Steerval), player1mapInMin, player1mapInMax, player1mapOutMin, player1mapOutMax);
-    // if (player1Steerval<0)mappedPlayer1Steerval*=-1;
-
-    if (player1Steerval<player1leftTriggerVal) {
-      player1.setLeftThrust(true, -SIDETHRUST);
-    } else {
-      player1.setLeftThrust(false);
+    // Trampolin
+    player1RawTrampolinData =float(sensordata[3]);
+    player1Trampolinval=player1RawTrampolinData-player1TrampolinCalibration;
+    
+    
+      //  GET SHIELD STUFF PLAYER 1
+    player2Buttonval=int(sensordata[4]);
+    if (player2Buttonval==1) {
+      player2.setShieldActive(true);
     }
-    if (player1Steerval>player1rightTriggerVal) {
-      player1.setRightThrust(true, SIDETHRUST);
-    } else {
-      player1.setRightThrust(false);
-    }
-
-    player1Trampolinval =float(sensordata[3]);
-    val1=player1Trampolinval-player1TrampolinCalibration;
-
-    float tempval=player1Trampolinval-player1TrampolinCalibration;
+    int player2Shieldvaltemp=int(sensordata[5]);
+    int player2Shieldvaldiff=player2Shieldvaltemp-player2Shieldval;
+    player2Shieldval =player2Shieldvaltemp;
+    player2EnergyToAdd=player2Shieldvaldiff;
 
 
+    // STEERING
+    rawSteerSensorDataPlayer2 =float(sensordata[6]);
+    //  player1Steerval=rawSteerSensorDataPlayer1-player1SteerCalibration;
+    //  player1Steerval = player1Steerval - player1Steerval%0.01;
+    player2Steerval=rawSteerSensorDataPlayer2;
 
-
-    if (tramplinValuesPlayer1.size()>2) {
-      float Tval1=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-2);
-      float Tval2=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-1);
-      if (Tval2>Tval1 && val1<Tval2 && tempval>THRUSTFORCETTRIGGER1) {
-        tempval=Tval2;
-      }
-      if (tramplinValuesPlayer1.size()>5)tramplinValuesPlayer1.remove(0);
-    }
-    tramplinValuesPlayer1.append(tempval);
-    val2=tempval;
-    if (tempval>THRUSTFORCETTRIGGER1) {
-      player1.setThrust(true, int(getThrustForceLevel(val2)));
-    }
-
-
-    // lerpdPlayer2Steerval=lerp(lerpdPlayer2Steerval, player2Steerval, player2SteerLerpFact);
-
-
-    /*  if (player1Steerval>0) {
-     float mappedinval1=map(lerpdPlayer1Steerval, player1mapInMin, player1mapInMax, player1mapOutMin, player1mapOutMax);
-     float mappedinvalPowInv=mapPowInv(3, lerpdPlayer1Steerval, player1mapInMin, player1mapInMax, player1mapOutMin, player1mapOutMax);
-     float mappedinvalPow=mapPow(0.1, lerpdPlayer1Steerval, player1mapInMin, player1mapInMax, player1mapOutMin, player1mapOutMax);
-     
-     
-     
-     
-     
-     val1=mappedinval1;
-     val2=mappedinvalPowInv;
-     val3=mappedinvalPow;
-     
-     //val1=lerp(val1, mappedinval1, lerpval);
-     //val2=lerp(val2, mappedinvalPowInv, lerpval);
-     //val3=lerp(val3, mappedinvalPow, lerpval);
-     }
-     */
+    // Trampolin
+    player2RawTrampolinData =float(sensordata[7]);
+    player2Trampolinval=player2RawTrampolinData-player2TrampolinCalibration;
+    
+    
+    
   } 
   catch (Exception e) {
     println("Initialization exception");
@@ -593,6 +635,10 @@ void oscEvent(OscMessage theOscMessage) {
     calibrateSteeringPlayer1();
   } else if (addr.equals("/2/player2Calibrate")) { 
     calibrateSteeringPlayer2();
+  } else if (addr.equals("/3/calibrateTrampolin")) { 
+    calibrateAllTrampolin();
+  } else if (addr.equals("/3/calibrateSteering")) { 
+    calibrateAllSteering();
   }
 }
 
@@ -678,6 +724,9 @@ void loadSteeringSettings(NetAddress _myRemoteLocation) {
   player1mapOutMax=steeringsettings.getFloat("player1mapOutMax");
   player1SteerCalibration=steeringsettings.getFloat("player1SteerCalibration");
 
+  player1TrampolinCalibration=steeringsettings.getFloat("player1TrampolinCalibration");
+
+
   player2leftTriggerVal=steeringsettings.getFloat("player2leftTriggerVal");
   player2rightTriggerVal=steeringsettings.getFloat("player2rightTriggerVal");
   player2mapInMin= steeringsettings.getFloat("player2mapInMin");
@@ -685,6 +734,9 @@ void loadSteeringSettings(NetAddress _myRemoteLocation) {
   player2mapOutMin =steeringsettings.getFloat("player2mapOutMin");
   player2mapOutMax=steeringsettings.getFloat("player2mapOutMax");
   player2SteerCalibration=steeringsettings.getFloat("player2SteerCalibration");
+
+  player2TrampolinCalibration=steeringsettings.getFloat("player2TrampolinCalibration");
+
 
 
   OscMessage myMessage = new OscMessage("/2/player1mapInMin");
@@ -811,14 +863,18 @@ void saveSteeringSettings() {
   parameters.setFloat("player1mapOutMin", player1mapOutMin);
   parameters.setFloat("player1mapOutMax", player1mapOutMax);
   parameters.setFloat("player1SteerCalibration", player1SteerCalibration);
+  parameters.setFloat("player1TrampolinCalibration", player1TrampolinCalibration);
+
+
   parameters.setFloat("player2leftTriggerVal", player2leftTriggerVal);
   parameters.setFloat("player2rightTriggerVal", player2rightTriggerVal);
-
   parameters.setFloat("player2mapInMin", player2mapInMin);
   parameters.setFloat("player2mapInMax", player2mapInMax);
   parameters.setFloat("player2mapOutMin", player2mapOutMin);
   parameters.setFloat("player2mapOutMax", player2mapOutMax);
   parameters.setFloat("player2SteerCalibration", player2SteerCalibration);
+  parameters.setFloat("player2TrampolinCalibration", player2TrampolinCalibration);
+
   saveJSONObject(parameters, "data/steeringsettings.json");
 }
 
@@ -854,5 +910,19 @@ void calibrateSteeringPlayer2() {
 }
 
 void calibrateTrampoilnPlayer1() {
-  player1TrampolinCalibration=player1Trampolinval;
+  player1TrampolinCalibration=player1RawTrampolinData;
+}
+
+void calibrateTrampoilnPlayer2() {
+  player2TrampolinCalibration=player2RawTrampolinData;
+}
+
+void calibrateAllTrampolin() {
+  calibrateTrampoilnPlayer1() ;
+  calibrateTrampoilnPlayer2() ;
+}
+
+void calibrateAllSteering() {
+  calibrateSteeringPlayer1();
+  calibrateSteeringPlayer2();
 }

@@ -143,9 +143,9 @@ class Shield {
 
   void loadShield(float amt) {
         if(energycounter>MAXENERGY)return;
-
+println(energycounter);
     energycounter+=amt;
-   for (int i=0; i<ceil(amt*2); i++) {
+   for (int i=0; i<ceil(amt*10); i++) {
       colorMode(HSB);
       color c=color(random(50, 150), random(30, 120), 255);
       colorMode(RGB);

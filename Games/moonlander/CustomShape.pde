@@ -41,6 +41,8 @@ class CustomShape {
 
   float blink=0;
 
+  FloatList thrustbuffer; // value buffer to find maximum
+
 
   Vec2 posBefore; 
   Vec2 velocityBefore;
@@ -67,6 +69,7 @@ class CustomShape {
     shipglow1 = loadImage("ship/glow_smooth1.png");
 
     thrustrings= new ArrayList<Thrust>();
+    thrustbuffer= new FloatList();
   }
 
   // This function removes the particle from the box2d world
@@ -111,7 +114,24 @@ class CustomShape {
       }
     }
 
-    if (gamestate==PLAY) {
+
+    if (!thrust && thrustbuffer.size()>0) {
+      thrust=true;
+      thrustforce=int(thrustbuffer.get(0));
+      boostsound.trigger();
+      thrustbuffer.remove(0);
+    }
+    /* if (useCounter) {
+     //if (!thrust) {
+     if ( _thrust&&!thrust) boostsound.trigger();
+     thrust=_thrust;
+     if (_thrustforce>thrustforce) {
+     thrustforce=_thrustforce;
+     }
+     }*/
+
+
+    if (gamestate==PLAYING) {
       if (thrust)verticalThrust();
       if (leftthrust )leftThrust();
       if (rightthrust )rightThrust();
@@ -132,6 +152,10 @@ class CustomShape {
     // Get its angle of rotation
     float a = body.getAngle();
     text(thrustforce, pos.x+50, pos.y);
+    text(thrustbuffer.size(), pos.x+50, pos.y-70);
+    text(player2Steerval, pos.x+50, pos.y+70);
+    text(lerpdPlayer2Steerval, pos.x+50, pos.y+140);
+    text(lerpdPlayer2Steerval-player2SteerCalibration, pos.x+50, pos.y+210);
 
 
 
@@ -310,18 +334,16 @@ class CustomShape {
   }
 
   void setThrust(boolean _thrust, int _thrustforce) {
-    if (useCounter) {
-      //if (!thrust) {
-      if ( _thrust&&!thrust) boostsound.trigger();
-      thrust=_thrust;
-      if (_thrustforce>thrustforce) {
-        thrustforce=_thrustforce;
-      }
-    } else {
-      thrust=_thrust;
-      thrustforce=_thrustforce;
-      boostsound.trigger();
-    }
+    /* if (useCounter) {
+     //if (!thrust) {
+     if ( _thrust&&!thrust) boostsound.trigger();
+     thrust=_thrust;
+     if (_thrustforce>thrustforce) {
+     thrustforce=_thrustforce;
+     }
+     }*/
+
+    thrustbuffer.append(_thrustforce);
   }
 
   void setLeftThrust(boolean _thrust) {
@@ -424,7 +446,7 @@ class CustomShape {
     glowcolor=_col;
 
     colorMode(HSB, 255);
-    shieldcolor=color(hue(glowcolor), saturation(glowcolor)-20, brightness(glowcolor)-100);
+    shieldcolor=color(hue(glowcolor), saturation(glowcolor), brightness(glowcolor));
     println("hue "+hue(glowcolor)+" "+hue(shieldcolor));
 
     colorMode(RGB);
@@ -440,7 +462,7 @@ class CustomShape {
 
   void reset() {
     shield.energycounter=0;
-    shield.loadShield(200);
+    shield.loadShield(10);
     shield.setShieldActive(false);
     body.setTransform(box2d.coordPixelsToWorld(new Vec2(startX, startY)), 0);
   }
