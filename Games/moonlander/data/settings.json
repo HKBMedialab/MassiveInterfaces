@@ -1,10 +1,9 @@
 {
-    "Gravity": 40,
-    "Restitution": 1.2,
-    "Damping": 1,
-    "Density": 0.6,
-    "Maxspeed": 100,
-    "Impulse":7,
-    "Maxthrustforce":8,
-   
+  "Damping": 1,
+  "Restitution": 3,
+  "Maxthrustforce": 8,
+  "Maxspeed": 100,
+  "Density": 0.25,
+  "Impulse": 7,
+  "Gravity": 180
 }

@@ -52,6 +52,9 @@ class CustomShape {
   // We need to keep track of a Body and a width and height
   Body body;
 
+
+  boolean debug=false;
+
   // Constructor
   CustomShape(PApplet pa, float x, float y, int _id) {
     id=_id;
@@ -151,12 +154,21 @@ class CustomShape {
     Vec2 pos = box2d.getBodyPixelCoord(body);
     // Get its angle of rotation
     float a = body.getAngle();
-    text(thrustforce, pos.x+50, pos.y);
-    text(thrustbuffer.size(), pos.x+50, pos.y-70);
-    text(player2Steerval, pos.x+50, pos.y+70);
-    text(lerpdPlayer2Steerval, pos.x+50, pos.y+140);
-    text(lerpdPlayer2Steerval-player2SteerCalibration, pos.x+50, pos.y+210);
+    if (debug && id==2) {
+      text(thrustforce, pos.x+50, pos.y);
+      text(thrustbuffer.size(), pos.x+50, pos.y-70);
+      text(player2Steerval, pos.x+50, pos.y+70);
+      text(lerpdPlayer2Steerval, pos.x+50, pos.y+140);
+      text(lerpdPlayer2Steerval-player2SteerCalibration, pos.x+50, pos.y+210);
+    }
 
+    if (debug && id==1) {
+      text(thrustforce, pos.x+50, pos.y);
+      text(thrustbuffer.size(), pos.x+50, pos.y-70);
+      text(player1Steerval, pos.x+50, pos.y+70);
+      text(lerpdPlayer1Steerval, pos.x+50, pos.y+140);
+      text(lerpdPlayer1Steerval-player2SteerCalibration, pos.x+50, pos.y+210);
+    }
 
 
 
@@ -377,8 +389,10 @@ class CustomShape {
   // Change color when hit
   void hitSurface() {
     Vec2 pos = box2d.getBodyPixelCoord(body);
-    if (pos.x>(width/2-PLATTFORMWIDTH/2) &&pos.x<(width/2+PLATTFORMWIDTH/2)) {
+    if (pos.x>(width/2-PLATTFORMWIDTH/2-10) && pos.x<(width/2+PLATTFORMWIDTH/2+10) && pos.y>height/2) {
       Vec2 velocity = body.getLinearVelocity();
+      setRestitution(0.9);
+
       float speed = velocity.length();
       println("++++++++++++++"+speed);
       if (speed<MAXLANDSPEED  || shield.getShieldIsActive()) {
@@ -436,6 +450,8 @@ class CustomShape {
   // Change color when hit
   void endContact() {
     // col = color(175);
+        //  setRestitution(RESTITUTION);
+
   }
 
   void setColor(color _col) {

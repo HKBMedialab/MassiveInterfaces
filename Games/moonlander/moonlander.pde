@@ -46,8 +46,8 @@ Surface surface;
 ArrayList<CustomShape> polygons;
 CustomShape player1;
 CustomShape player2; 
-PVector positionPlayer1=new PVector(20, 500);
-PVector positionPlayer2=new PVector(800, 100);
+PVector positionPlayer1=new PVector(1920-50, 500);
+PVector positionPlayer2=new PVector(50, 500);
 
 
 // STARTING UP
@@ -68,18 +68,18 @@ AudioPlayer landed;
 int gamestate;
 
 void setup() {
-  size(1920, 1080);
+  //size(1920, 1080);
   // size(1500, 1080);
   frameRate(30);
   // pixelDensity(2);
-  // fullScreen(2);
+  fullScreen();
 
   //------------------------- INITS ----------------------------------
   RG.init(this); // init geomerative for Landscape generation
   // Arduino stuff
   println(Serial.list());
   String portName = Serial.list()[3];
-  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1421", 9600 );
+  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 9600 );
   if (bUseArduino) myPort.bufferUntil(lf);
 
 
@@ -176,76 +176,77 @@ void draw() {
   }
 
 
-  lerpdPlayer1Steerval=lerp(lerpdPlayer1Steerval, player1Steerval, lerpval);
+  if (bUseArduino) {
+    lerpdPlayer1Steerval=lerp(lerpdPlayer1Steerval, player1Steerval, lerpval);
 
-  if (lerpdPlayer1Steerval-player1SteerCalibration<player1leftTriggerVal) {
-    player1.setLeftThrust(true, -SIDETHRUST);
-  } else {
-    player1.setLeftThrust(false);
-  }
-  if (lerpdPlayer1Steerval-player1SteerCalibration>player1rightTriggerVal) {
-    player1.setRightThrust(true, SIDETHRUST);
-  } else {
-    player1.setRightThrust(false);
-  }
-
-
-  lerpdPlayer2Steerval=lerp(lerpdPlayer2Steerval, player2Steerval, lerpval);
-
-  if (lerpdPlayer2Steerval-player2SteerCalibration<player2leftTriggerVal) {
-    player2.setLeftThrust(true, -SIDETHRUST);
-  } else {
-    player2.setLeftThrust(false);
-  }
-  if (lerpdPlayer2Steerval-player2SteerCalibration>player2rightTriggerVal) {
-    player2.setRightThrust(true, SIDETHRUST);
-  } else {
-    player2.setRightThrust(false);
-  }
-
-
-
-
-  float tempval=0;
-  //  val1=player1Trampolinval;
-  // look for maximum
-  if (tramplinValuesPlayer1.size()>2) {
-    float Tval1=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-2);
-    float Tval2=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-1);
-    if (Tval2>Tval1 && player1Trampolinval<Tval2 &&Tval2>THRUSTFORCETTRIGGER1) {
-      tempval=Tval2;
-      player1peak=Tval2;
+    if (lerpdPlayer1Steerval-player1SteerCalibration<player1leftTriggerVal) {
+      player1.setLeftThrust(true, -SIDETHRUST);
+    } else {
+      player1.setLeftThrust(false);
     }
-  }
-  tramplinValuesPlayer1.append(player1Trampolinval);
-  //val2=tempval;
-  player1TrampolThrust=tempval;
-  if (player1TrampolThrust>THRUSTFORCETTRIGGER1) {
-    player1.setThrust(true, int(getThrustForceLevel(player1TrampolThrust)));
-  }
-  if (tramplinValuesPlayer1.size()>3)tramplinValuesPlayer1.remove(0); // keep the list short...
-
-
-
-
-  float tempval2=0;
-  //  val1=player1Trampolinval;
-  // look for maximum
-  if (tramplinValuesPlayer2.size()>2) {
-    float Tval1=tramplinValuesPlayer2.get(tramplinValuesPlayer2.size()-2);
-    float Tval2=tramplinValuesPlayer2.get(tramplinValuesPlayer2.size()-1);
-    if (Tval2>Tval1 && player2Trampolinval<Tval2 &&Tval2>THRUSTFORCETTRIGGER1) {
-      tempval2=Tval2;
-      player2peak=Tval2;
+    if (lerpdPlayer1Steerval-player1SteerCalibration>player1rightTriggerVal) {
+      player1.setRightThrust(true, SIDETHRUST);
+    } else {
+      player1.setRightThrust(false);
     }
+
+
+    lerpdPlayer2Steerval=lerp(lerpdPlayer2Steerval, player2Steerval, lerpval);
+
+    if (lerpdPlayer2Steerval-player2SteerCalibration<player2leftTriggerVal) {
+      player2.setLeftThrust(true, -SIDETHRUST);
+    } else {
+      player2.setLeftThrust(false);
+    }
+    if (lerpdPlayer2Steerval-player2SteerCalibration>player2rightTriggerVal) {
+      player2.setRightThrust(true, SIDETHRUST);
+    } else {
+      player2.setRightThrust(false);
+    }
+
+
+
+    float tempval=0;
+    //  val1=player1Trampolinval;
+    // look for maximum
+    if (tramplinValuesPlayer1.size()>2) {
+      float Tval1=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-2);
+      float Tval2=tramplinValuesPlayer1.get(tramplinValuesPlayer1.size()-1);
+      if (Tval2>Tval1 && player1Trampolinval<Tval2 &&Tval2>THRUSTFORCETTRIGGER1) {
+        tempval=Tval2;
+        player1peak=Tval2;
+      }
+    }
+    tramplinValuesPlayer1.append(player1Trampolinval);
+    //val2=tempval;
+    player1TrampolThrust=tempval;
+    if (player1TrampolThrust>THRUSTFORCETTRIGGER1) {
+      player1.setThrust(true, int(getThrustForceLevel(player1TrampolThrust)));
+    }
+    if (tramplinValuesPlayer1.size()>3)tramplinValuesPlayer1.remove(0); // keep the list short...
+
+
+
+
+    float tempval2=0;
+    //  val1=player1Trampolinval;
+    // look for maximum
+    if (tramplinValuesPlayer2.size()>2) {
+      float Tval1=tramplinValuesPlayer2.get(tramplinValuesPlayer2.size()-2);
+      float Tval2=tramplinValuesPlayer2.get(tramplinValuesPlayer2.size()-1);
+      if (Tval2>Tval1 && player2Trampolinval<Tval2 &&Tval2>THRUSTFORCETTRIGGER1) {
+        tempval2=Tval2;
+        player2peak=Tval2;
+      }
+    }
+    tramplinValuesPlayer2.append(player2Trampolinval);
+    //val2=tempval;
+    player2TrampolThrust=tempval2;
+    if (player2TrampolThrust>THRUSTFORCETTRIGGER1) {
+      player2.setThrust(true, int(getThrustForceLevel(player2TrampolThrust)));
+    }
+    if (tramplinValuesPlayer2.size()>3)tramplinValuesPlayer2.remove(0); // keep the list short...
   }
-  tramplinValuesPlayer2.append(player2Trampolinval);
-  //val2=tempval;
-  player2TrampolThrust=tempval2;
-  if (player2TrampolThrust>THRUSTFORCETTRIGGER1) {
-    player2.setThrust(true, int(getThrustForceLevel(player2TrampolThrust)));
-  }
-  if (tramplinValuesPlayer2.size()>3)tramplinValuesPlayer2.remove(0); // keep the list short...
 
 
   plattform.render();
@@ -257,7 +258,7 @@ void draw() {
   // val1=rand;
   plotterHandler();
 
-  textSize(50);
+  textSize(20);
   fill(255);
   text(frameRate, 20, 50);
 
@@ -358,9 +359,9 @@ void serialEvent(Serial p) {
     // Trampolin
     player1RawTrampolinData =float(sensordata[3]);
     player1Trampolinval=player1RawTrampolinData-player1TrampolinCalibration;
-    
-    
-      //  GET SHIELD STUFF PLAYER 1
+
+
+    //  GET SHIELD STUFF PLAYER 1
     player2Buttonval=int(sensordata[4]);
     if (player2Buttonval==1) {
       player2.setShieldActive(true);
@@ -380,9 +381,6 @@ void serialEvent(Serial p) {
     // Trampolin
     player2RawTrampolinData =float(sensordata[7]);
     player2Trampolinval=player2RawTrampolinData-player2TrampolinCalibration;
-    
-    
-    
   } 
   catch (Exception e) {
     println("Initialization exception");

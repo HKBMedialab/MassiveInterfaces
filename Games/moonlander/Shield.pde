@@ -42,7 +42,7 @@ class Shield {
 
   void update(Vec2 _pos) {
     
-    if (getShieldIsActive())energycounter--;
+    if (getShieldIsActive())energycounter-=2;
     if (energycounter<0) {
       energycounter=0;
       setShieldActive(false);

@@ -4,7 +4,7 @@ String oscListenToAdress="147.87.39.19"; // ipad Adress
 
 // WORLD
 float GRAVITY = 180;
-float RESTITUTION=0.8;
+float RESTITUTION=3;//1.2;
 float DAMPING = 1;
 
 
@@ -20,7 +20,7 @@ int THRUSTFORCE3=10000;
 int THRUSTFORCE4=30000;
 
 int THRUSTFORCETTRIGGER1=100;
-int THRUSTFORCETTRIGGER2=180;
+int THRUSTFORCETTRIGGER2=150;
 int THRUSTFORCETTRIGGER3=290;
 int THRUSTFORCETTRIGGER4=500;
 
@@ -49,7 +49,7 @@ final int CRASHED = 102;
 
 
 // VOLUMES
-final float AMBIMAX=0.0f;
+final float AMBIMAX=0.8f;
 final float AMBIMUTE=-15f;
 final float LIFTOFFMAX=10;
 final float LIFTOFFMUTE=-5;
@@ -66,17 +66,17 @@ final float LIFTOFFMUTE=-5;
 // SENSORVALUES
 /*
 public float trampolinval = 0;
-public float steerval = 0;
-public float rightSteer=235;
-public float leftSteer=270;
-public  float scaledInval=0;
-public float trampolinscalemin = 1;//7;
-public float trampolinscalemax = 12;//198;
-float minVal=400;
-float maxVal=0;
-
-
-float incomingThrustBefore=0;*/
+ public float steerval = 0;
+ public float rightSteer=235;
+ public float leftSteer=270;
+ public  float scaledInval=0;
+ public float trampolinscalemin = 1;//7;
+ public float trampolinscalemax = 12;//198;
+ float minVal=400;
+ float maxVal=0;
+ 
+ 
+ float incomingThrustBefore=0;*/
 
 // Plotter Vars
 Plotter plotterA0; 
@@ -91,17 +91,17 @@ float pH=255;
 float val1=0;
 float val2=0;      // Data received from the serial port
 float val3=0;      // Data received from the serial port
-float lerpval=0.2;
+float lerpval=0.6;
 
 /*
 float lerpdval1=0;
-float lerpdval2=0;      // Data received from the serial port
-float lerpdval3=0;      // Data received from the serial port
-
-float leftTriggerVal=200;
-float rightTriggerVal=500;
-
-*/
+ float lerpdval2=0;      // Data received from the serial port
+ float lerpdval3=0;      // Data received from the serial port
+ 
+ float leftTriggerVal=200;
+ float rightTriggerVal=500;
+ 
+ */
 
 // STEERING
 float rawSteerSensorDataPlayer1=0; // Raw Data from Sensor
@@ -267,17 +267,16 @@ void plotterHandler() {
    popMatrix();
    */
 
- if (renderPlotter) {
-  plotterA0.addValue(val1);
-  plotterA0.update();
+  if (renderPlotter) {
+    plotterA0.addValue(val1);
+    plotterA0.update();
 
-  plotterA1.addValue(val2);
-  plotterA1.update();
+    plotterA1.addValue(val2);
+    plotterA1.update();
 
-  plotterA2.addValue(val3);
-  plotterA2.update();
-
- }
+    plotterA2.addValue(val3);
+    plotterA2.update();
+  }
 
   if (renderPlotter) {
     float mplayer1leftTriggerVal=map(player1leftTriggerVal, 0, 10, 0, pH);
@@ -370,13 +369,28 @@ void setTocuosc(NetAddress _remoteLocation, String adress, float value) {
 void keyTyped() {
   println(key);
   switch(key) {
+
+
+  case ' ':
+    player1.debug= !player1.debug;
+    player2.debug= !player2.debug;
+
+    break;
+
   case 'c':
+    player1.reset();
+    player2.reset();
     changeGameState(COUNTDOWN);
     break;
 
   case 's':
     player1.setShieldActive(true);
     break;
+
+  case 'S':
+    saveAllSettings();
+    break;
+
 
   case 'y':
     player1.loadShield(5);
@@ -387,7 +401,7 @@ void keyTyped() {
     break;
 
   case 'w':
-    player1.setThrust(true, 2000);
+    player1.setThrust(true, 5000);
     break;
 
   case 'a':
@@ -415,11 +429,13 @@ void keyTyped() {
     break;
 
   case 't':
-    calibrateTrampoilnPlayer1();
+    // calibrateTrampoilnPlayer1();
+    calibrateAllTrampolin();
     break;
 
   case '0':
-    calibrateSteeringPlayer1();
+    //calibrateSteeringPlayer1();
+    calibrateAllSteering();
     break;
 
 
@@ -439,10 +455,10 @@ void keyTyped() {
     reset();
     break;
 
-  
+
   case 'g':
-  changeGameState(LANDED);
-break;
+    changeGameState(LANDED);
+    break;
   }
 }
 
