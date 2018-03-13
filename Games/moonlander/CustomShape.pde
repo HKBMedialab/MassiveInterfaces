@@ -121,7 +121,12 @@ class CustomShape {
     if (!thrust && thrustbuffer.size()>0) {
       thrust=true;
       thrustforce=int(thrustbuffer.get(0));
-      boostsound.trigger();
+      if (id==1) {
+        player1boostsound.trigger();
+      }
+      if (id==2) {
+        player2boostsound.trigger();
+      }
       thrustbuffer.remove(0);
     }
     /* if (useCounter) {
@@ -257,7 +262,9 @@ class CustomShape {
 
 
     if (rightthrust) {
+
       if (frameCount%thrustFramedistance==0) {
+
         Thrust t = new Thrust();
         t.speed.rotate(PI/4);
         t.position.set(-30, 60);
@@ -265,9 +272,19 @@ class CustomShape {
         t.tHeight=10;
         thrustrings.add(t);
       }
+      if (frameCount%5==0) {
+        if (id==1) {
+          player1sideboost.trigger();
+        }  
+        if (id==2) {
+          player2sideboost.trigger();
+        }
+      }
     }
 
     if (leftthrust) {
+
+
       if (frameCount%thrustFramedistance==0) {
         Thrust t = new Thrust();
         t.speed.rotate(-PI/4);
@@ -275,6 +292,15 @@ class CustomShape {
         t.tWidth=30;
         t.tHeight=10;
         thrustrings.add(t);
+      }
+
+      if (frameCount%5==0) {
+        if (id==1) {
+          player1sideboost.trigger();
+        }  
+        if (id==2) {
+          player2sideboost.trigger();
+        }
       }
     }
 
@@ -372,7 +398,9 @@ class CustomShape {
   }
 
   void setRightThrust(boolean _thrust, int _thrustforce) {
-    rightthrust=_thrust;
+    if (!rightthrust && _thrust)
+
+      rightthrust=_thrust;
     rightthrustforce=_thrustforce;
   }
 
@@ -388,13 +416,13 @@ class CustomShape {
 
   // Change color when hit
   void hitSurface() {
+    hitground.trigger();
     Vec2 pos = box2d.getBodyPixelCoord(body);
-    if (pos.x>(width/2-PLATTFORMWIDTH/2-10) && pos.x<(width/2+PLATTFORMWIDTH/2+10) && pos.y>height/2) {
+    if (pos.x>(plattform.position.x-PLATTFORMWIDTH/2-10) && pos.x<(plattform.position.x+PLATTFORMWIDTH/2+10) && pos.y>height/3) {
       Vec2 velocity = body.getLinearVelocity();
       setRestitution(0.9);
 
       float speed = velocity.length();
-      println("++++++++++++++"+speed);
       if (speed<MAXLANDSPEED  || shield.getShieldIsActive()) {
         winner=this;
         changeGameState(LANDED);
@@ -402,6 +430,10 @@ class CustomShape {
         // changeGameState(CRASHED);
       }
     }
+    if(!shield.getShieldIsActive()){
+          setRestitution(RESTITUTION);
+    }
+    
   }
 
   void hitShip() {
@@ -450,8 +482,7 @@ class CustomShape {
   // Change color when hit
   void endContact() {
     // col = color(175);
-        //  setRestitution(RESTITUTION);
-
+    //  setRestitution(RESTITUTION);
   }
 
   void setColor(color _col) {

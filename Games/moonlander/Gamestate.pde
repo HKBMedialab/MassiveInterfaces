@@ -19,6 +19,8 @@ void changeGameState(int _state) {
     liftoff.rewind();
     liftoff.setGain(5);
     liftoff.play();
+
+
     break;
 
   case COUNTDOWN:
@@ -76,7 +78,7 @@ void gameStateRenderHandler() {
 
     //   text("YOU WIN", width/2, height/2);
 
-   
+
 
 
 
@@ -92,7 +94,7 @@ void gameStateRenderHandler() {
     }
     popMatrix();
     if (winnerrotation<=10*PI) {
-   //   winnerrotation+=0.25;
+      //   winnerrotation+=0.25;
     }
     if (winnerscale<1) {
       winnerscale+=0.008;

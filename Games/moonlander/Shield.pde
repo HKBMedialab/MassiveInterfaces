@@ -128,6 +128,7 @@ class Shield {
       shielStartAddTimer=millis();
       Ring r = new Ring();
       shieldrings.add(r);
+      shield.trigger();
     } else {
     }
   }

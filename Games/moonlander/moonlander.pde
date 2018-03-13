@@ -56,11 +56,19 @@ Countdown countdown = new Countdown();
 // sound
 Minim minim;
 AudioPlayer ambisound;
-AudioSample boostsound;
+AudioSample player1boostsound;
+AudioSample player2boostsound;
+
 AudioSample hitsound;
 AudioPlayer countdownsound;
 AudioPlayer liftoff;
 AudioPlayer landed;
+
+AudioSample player1sideboost;
+AudioSample player2sideboost;
+
+AudioSample hitground;
+AudioSample shield;
 
 
 
@@ -68,11 +76,11 @@ AudioPlayer landed;
 int gamestate;
 
 void setup() {
-  //size(1920, 1080);
+  size(1920, 1080);
   // size(1500, 1080);
   frameRate(30);
   // pixelDensity(2);
-  fullScreen();
+  //fullScreen();
 
   //------------------------- INITS ----------------------------------
   RG.init(this); // init geomerative for Landscape generation
@@ -132,14 +140,30 @@ void setup() {
 
   //------------------------- SOUND ----------------------------------
   minim = new Minim(this);
-  ambisound = minim.loadFile("sounds/Game Ambient.mp3");
+  ambisound = minim.loadFile("sounds/Ambiet Moonlander.mp3");
   ambisound.setGain(AMBIMUTE);
   ambisound.loop();  
-  boostsound = minim.loadSample("sounds/boost.mp3", 512);
+  player1boostsound = minim.loadSample("sounds/Boost gekürzt.mp3");
+  player1boostsound.setBalance(player1balance);
+  player2boostsound = minim.loadSample("sounds/Boost gekürzt.mp3");
+  player2boostsound.setBalance(player2balance);
+
   hitsound = minim.loadSample("sounds/Hit.mp3", 512);
   countdownsound = minim.loadFile("sounds/Countdown.mp3");
   liftoff = minim.loadFile("sounds/Startliftoff.mp3");
   landed=minim.loadFile("sounds/Landing Plattform_short.mp3");
+  shield=minim.loadSample("sounds/Schild aufladen.mp3");
+
+  player1sideboost=minim.loadSample("sounds/Seiten Boost.mp3");
+  player1sideboost.setBalance(player1balance);
+  player1sideboost.setGain(-5);
+
+  player2sideboost=minim.loadSample("sounds/Seiten Boost.mp3");
+  player2sideboost.setBalance(player2balance);
+  player2sideboost.setGain(-5);
+  hitground=minim.loadSample("sounds/Hit stone.mp3");
+  hitground.setGain(5);
+
 
 
   winPlayer1=loadImage("grafik/win_red.png");

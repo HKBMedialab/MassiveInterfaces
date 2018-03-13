@@ -4,7 +4,7 @@ String oscListenToAdress="147.87.39.19"; // ipad Adress
 
 // WORLD
 float GRAVITY = 180;
-float RESTITUTION=3;//1.2;
+float RESTITUTION=1.2;//1.2;
 float DAMPING = 1;
 
 
@@ -49,7 +49,7 @@ final int CRASHED = 102;
 
 
 // VOLUMES
-final float AMBIMAX=0.8f;
+final float AMBIMAX=0f;
 final float AMBIMUTE=-15f;
 final float LIFTOFFMAX=10;
 final float LIFTOFFMUTE=-5;
@@ -60,7 +60,8 @@ final float LIFTOFFMUTE=-5;
 
 
 
-
+int player1balance=-5;
+int player2balance=5;
 
 
 // SENSORVALUES
@@ -172,7 +173,7 @@ float val;      // Data received from the serial port
 String inString="";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
 int [] mysensors= new int[2];
-boolean bUseArduino=true;
+boolean bUseArduino=false;
 
 
 
@@ -369,7 +370,10 @@ void setTocuosc(NetAddress _remoteLocation, String adress, float value) {
 void keyTyped() {
   println(key);
   switch(key) {
+case'v':
+hitground.trigger();
 
+break;
 
   case ' ':
     player1.debug= !player1.debug;
@@ -417,7 +421,7 @@ void keyTyped() {
     break;
 
   case 'i':
-    player2.setThrust(true, 2000);
+    player2.setThrust(true, 5000);
     break;
 
   case 'j':
