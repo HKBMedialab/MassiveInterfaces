@@ -420,7 +420,7 @@ class CustomShape {
     Vec2 pos = box2d.getBodyPixelCoord(body);
     if (pos.x>(plattform.position.x-PLATTFORMWIDTH/2-10) && pos.x<(plattform.position.x+PLATTFORMWIDTH/2+10) && pos.y>height/3) {
       Vec2 velocity = body.getLinearVelocity();
-      setRestitution(0.9);
+      setRestitution(0.8);
 
       float speed = velocity.length();
       if (speed<MAXLANDSPEED  || shield.getShieldIsActive()) {
@@ -429,11 +429,9 @@ class CustomShape {
       } else {
         // changeGameState(CRASHED);
       }
+    } else if (!shield.getShieldIsActive()) {
+      setRestitution(RESTITUTION);
     }
-    if(!shield.getShieldIsActive()){
-          setRestitution(RESTITUTION);
-    }
-    
   }
 
   void hitShip() {
