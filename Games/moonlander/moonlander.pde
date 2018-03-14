@@ -86,7 +86,7 @@ void setup() {
   RG.init(this); // init geomerative for Landscape generation
   // Arduino stuff
   println(Serial.list());
-  String portName = Serial.list()[3];
+  String portName = Serial.list()[2];
   if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 9600 );
   if (bUseArduino) myPort.bufferUntil(lf);
 
