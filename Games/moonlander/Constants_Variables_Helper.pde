@@ -28,6 +28,20 @@ int thrustforcearray[][]={{THRUSTFORCETTRIGGER1, THRUSTFORCE1}, {THRUSTFORCETTRI
 
 
 
+int THRUSTFORCETTRIGGER1P2=80;
+int THRUSTFORCETTRIGGER2P2=130;
+int THRUSTFORCETTRIGGER3P2=230;
+int THRUSTFORCETTRIGGER4P2=500;
+
+int thrustforcearrayP2[][]={{THRUSTFORCETTRIGGER1P2, THRUSTFORCE1}, {THRUSTFORCETTRIGGER2P2, THRUSTFORCE2}, {THRUSTFORCETTRIGGER3P2, THRUSTFORCE3}, {THRUSTFORCETTRIGGER4P2, THRUSTFORCE4}};
+
+
+
+
+
+
+
+
 
 int SIDETHRUST=3000;
 
@@ -129,7 +143,7 @@ FloatList player1Thrustbuffer; // value buffer to find maximum
 float lerpdPlayer1Steerval=0;
 float mappedPlayer1Steerval=0;
 float player1SteerLerpFact=0.9;
-float player1leftTriggerVal=-2;
+float player1leftTriggerVal=-1.5;
 float player1rightTriggerVal=2;
 float player1mapInMin= 0;
 float player1mapInMax=20;
@@ -140,7 +154,7 @@ float player1mapOutMax=5;
 
 // STEERING
 float rawSteerSensorDataPlayer2=0; // Raw Data from Sensor
-float player2SteerCalibration=10; // calibrate Position to get values smaller and bigger than 0
+float player2SteerCalibration=8; // calibrate Position to get values smaller and bigger than 0
 float player2Steerval=0; // value for the steerdiff from 0; Actual steering! 
 
 // Shield
@@ -202,7 +216,7 @@ PImage winPlayer2;
 float winnerrotation=0;
 float winnerscale=0;
 
-
+PImage frontType;
 
 CustomShape winner;
 

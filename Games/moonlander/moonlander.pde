@@ -87,7 +87,7 @@ void setup() {
   // Arduino stuff
   println(Serial.list());
   String portName = Serial.list()[2];
-  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem1411", 9600 );
+  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem14231", 9600 );
   if (bUseArduino) myPort.bufferUntil(lf);
 
 
@@ -168,6 +168,8 @@ void setup() {
 
   winPlayer1=loadImage("grafik/win_red.png");
   winPlayer2=loadImage("grafik/win_white.png");
+  
+  frontType=loadImage("grafik/gameit_typo_2b.png");
 
   //------------------------- GAMEHANDLER ----------------------------------
   gamestate=STARTSCREEN;
@@ -230,6 +232,8 @@ void draw() {
 
 
 
+
+
     float tempval=0;
     //  val1=player1Trampolinval;
     // look for maximum
@@ -244,10 +248,15 @@ void draw() {
     tramplinValuesPlayer1.append(player1Trampolinval);
     //val2=tempval;
     player1TrampolThrust=tempval;
+    
+    val1=player1Trampolinval;
+    
+    
     if (player1TrampolThrust>THRUSTFORCETTRIGGER1) {
       player1.setThrust(true, int(getThrustForceLevel(player1TrampolThrust)));
     }
     if (tramplinValuesPlayer1.size()>3)tramplinValuesPlayer1.remove(0); // keep the list short...
+
 
 
 
@@ -266,13 +275,13 @@ void draw() {
     tramplinValuesPlayer2.append(player2Trampolinval);
     //val2=tempval;
     player2TrampolThrust=tempval2;
-    if (player2TrampolThrust>THRUSTFORCETTRIGGER1) {
-      player2.setThrust(true, int(getThrustForceLevel(player2TrampolThrust)));
+    if (player2TrampolThrust>THRUSTFORCETTRIGGER1P2) {
+      player2.setThrust(true, int(getThrustForceLevelP2(player2TrampolThrust)));
     }
     if (tramplinValuesPlayer2.size()>3)tramplinValuesPlayer2.remove(0); // keep the list short...
   }
 
-
+val2=player2Trampolinval;
   plattform.render();
 
   // -------------- Main Render Stuff  ----------
@@ -431,6 +440,17 @@ int getThrustForceLevel(float _thrustforce) {
   for (int i=0; i<thrustforcearray.length; i++) {
     if (_thrustforce>thrustforcearray[i][0]) {
       tempthrustforce=(int)thrustforcearray[i][1];
+    }
+  }
+  return  tempthrustforce;
+}
+
+
+int getThrustForceLevelP2(float _thrustforce) {
+  int tempthrustforce=0;
+  for (int i=0; i<thrustforcearrayP2.length; i++) {
+    if (_thrustforce>thrustforcearrayP2[i][0]) {
+      tempthrustforce=(int)thrustforcearrayP2[i][1];
     }
   }
   return  tempthrustforce;

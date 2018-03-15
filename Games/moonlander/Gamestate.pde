@@ -109,6 +109,7 @@ void gameStateRenderHandler() {
 
   case STARTSCREEN:
     // text("START", width/2, height/2);
+    image(frontType,width/2-frontType.width/2,height/2-frontType.height/2);
     player1.display();
     player2.display();
 
