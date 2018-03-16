@@ -1,4 +1,4 @@
-//defaults write -g ApplePressAndHoldEnabled -bool false //<>//
+//defaults write -g ApplePressAndHoldEnabled -bool false //<>// //<>//
 //defaults write -g ApplePressAndHoldEnabled -bool true
 
 import shiffman.box2d.*;
@@ -76,18 +76,20 @@ AudioSample shield;
 int gamestate;
 
 void setup() {
-  size(1920, 1080);
+ // size(1920, 1080);
   // size(1500, 1080);
   frameRate(30);
   // pixelDensity(2);
-  //fullScreen();
+  fullScreen();
+  
+  noCursor();
 
   //------------------------- INITS ----------------------------------
   RG.init(this); // init geomerative for Landscape generation
   // Arduino stuff
   println(Serial.list());
   String portName = Serial.list()[2];
-  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem14231", 9600 );
+  if (bUseArduino) myPort = new Serial(this, "/dev/tty.usbmodem14131", 9600 );
   if (bUseArduino) myPort.bufferUntil(lf);
 
 
@@ -145,24 +147,28 @@ void setup() {
   ambisound.loop();  
   player1boostsound = minim.loadSample("sounds/Boost gekürzt.mp3");
   player1boostsound.setBalance(player1balance);
+  player1boostsound.setGain(-5);
+
   player2boostsound = minim.loadSample("sounds/Boost gekürzt.mp3");
   player2boostsound.setBalance(player2balance);
+  player2boostsound.setGain(-5);
 
   hitsound = minim.loadSample("sounds/Hit.mp3", 512);
   countdownsound = minim.loadFile("sounds/Countdown.mp3");
+  countdownsound.setGain(-5);
   liftoff = minim.loadFile("sounds/Startliftoff.mp3");
   landed=minim.loadFile("sounds/Landing Plattform_short.mp3");
   shield=minim.loadSample("sounds/Schild aufladen.mp3");
 
   player1sideboost=minim.loadSample("sounds/Seiten Boost.mp3");
   player1sideboost.setBalance(player1balance);
-  player1sideboost.setGain(-5);
+  player1sideboost.setGain(-12);
 
   player2sideboost=minim.loadSample("sounds/Seiten Boost.mp3");
   player2sideboost.setBalance(player2balance);
-  player2sideboost.setGain(-5);
+  player2sideboost.setGain(-12);
   hitground=minim.loadSample("sounds/Hit stone.mp3");
-  hitground.setGain(5);
+  hitground.setGain(-14);
 
 
 
@@ -293,7 +299,7 @@ void draw() {
 
   textSize(20);
   fill(255);
-  text(frameRate, 20, 50);
+  //text(frameRate, 20, 50);
 
 
   /*
@@ -681,25 +687,71 @@ void oscEvent(OscMessage theOscMessage) {
     calibrateAllTrampolin();
   } else if (addr.equals("/3/calibrateSteering")) { 
     calibrateAllSteering();
-  } else if (addr.equals("/4/multifader1")) { 
+  } else if (addr.equals("/4/multifader1/1")) { 
     float  val0  = theOscMessage.get(0).floatValue();
-    float  val1  = theOscMessage.get(1).floatValue();
-    float  val2  = theOscMessage.get(2).floatValue();
-    float  val3  = theOscMessage.get(3).floatValue();
-    THRUSTFORCETTRIGGER1=int(val0);
-    THRUSTFORCETTRIGGER2=int(val1);
-    THRUSTFORCETTRIGGER3=int(val2);
-    THRUSTFORCETTRIGGER4=int(val3);
-  } else if (addr.equals("/4/multifader2")) { 
+    THRUSTFORCETTRIGGER1=int(val0);    
+    OscMessage  myMessage = new OscMessage("/4/label97");
+    myMessage.add(THRUSTFORCETTRIGGER1); 
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/4/multifader1/2")) { 
     float  val0  = theOscMessage.get(0).floatValue();
-    float  val1  = theOscMessage.get(1).floatValue();
-    float  val2  = theOscMessage.get(2).floatValue();
-    float  val3  = theOscMessage.get(3).floatValue();
-    THRUSTFORCETTRIGGER1P2=int(val0);
-    THRUSTFORCETTRIGGER2P2=int(val1);
-    THRUSTFORCETTRIGGER3P2=int(val2);
-    THRUSTFORCETTRIGGER4P2=int(val3);
-  }
+    THRUSTFORCETTRIGGER2=int(val0);    
+    OscMessage  myMessage = new OscMessage("/4/label99");
+    myMessage.add(THRUSTFORCETTRIGGER2); 
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/4/multifader1/3")) { 
+    float  val0  = theOscMessage.get(0).floatValue();
+    THRUSTFORCETTRIGGER3=int(val0);    
+    OscMessage  myMessage = new OscMessage("/4/label100");
+    myMessage.add(THRUSTFORCETTRIGGER3); 
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/4/multifader1/4")) { 
+    float  val0  = theOscMessage.get(0).floatValue();
+    THRUSTFORCETTRIGGER4=int(val0);    
+    OscMessage  myMessage = new OscMessage("/4/label101");
+    myMessage.add(THRUSTFORCETTRIGGER4); 
+    oscP5.send(myMessage, myRemoteLocation);
+  
+
+} 
+
+
+
+else if (addr.equals("/4/multifader2/1")) { 
+    float  val0  = theOscMessage.get(0).floatValue();
+    THRUSTFORCETTRIGGER1P2=int(val0);    
+    OscMessage  myMessage = new OscMessage("/4/label102");
+    myMessage.add(THRUSTFORCETTRIGGER1P2); 
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/4/multifader2/2")) { 
+    float  val0  = theOscMessage.get(0).floatValue();
+    THRUSTFORCETTRIGGER2P2=int(val0);    
+    OscMessage  myMessage = new OscMessage("/4/label103");
+    myMessage.add(THRUSTFORCETTRIGGER2P2); 
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/4/multifader2/3")) { 
+    float  val0  = theOscMessage.get(0).floatValue();
+    THRUSTFORCETTRIGGER3P2=int(val0);    
+    OscMessage  myMessage = new OscMessage("/4/label104");
+    myMessage.add(THRUSTFORCETTRIGGER3P2); 
+    oscP5.send(myMessage, myRemoteLocation);
+  } else if (addr.equals("/4/multifader2/4")) { 
+    float  val0  = theOscMessage.get(0).floatValue();
+    THRUSTFORCETTRIGGER4P2=int(val0);    
+    OscMessage  myMessage = new OscMessage("/4/label105");
+    myMessage.add(THRUSTFORCETTRIGGER4P2); 
+    oscP5.send(myMessage, myRemoteLocation);
+  
+
+}
+
+
+
+
+
+
+
+
 }
 
 void loadWorldSettings(NetAddress _myRemoteLocation) {
@@ -800,15 +852,18 @@ void loadSteeringSettings(NetAddress _myRemoteLocation) {
 
 
 
- THRUSTFORCETTRIGGER1=steeringsettings.getInt("thrustforcetrigger1");
- THRUSTFORCETTRIGGER2=steeringsettings.getInt("thrustforcetrigger2");
- THRUSTFORCETTRIGGER3=steeringsettings.getInt("thrustforcetrigger3");
- THRUSTFORCETTRIGGER4=steeringsettings.getInt("thrustforcetrigger4");
+  THRUSTFORCETTRIGGER1=steeringsettings.getInt("thrustforcetrigger1");
+  THRUSTFORCETTRIGGER2=steeringsettings.getInt("thrustforcetrigger2");
+  THRUSTFORCETTRIGGER3=steeringsettings.getInt("thrustforcetrigger3");
+  THRUSTFORCETTRIGGER4=steeringsettings.getInt("thrustforcetrigger4");
 
- THRUSTFORCETTRIGGER1P2=steeringsettings.getInt("thrustforcetrigger1P2");
- THRUSTFORCETTRIGGER2P2=steeringsettings.getInt("thrustforcetrigger2P2");;
- THRUSTFORCETTRIGGER3P2=steeringsettings.getInt("thrustforcetrigger3P2");;
- THRUSTFORCETTRIGGER4P2=steeringsettings.getInt("thrustforcetrigger4P2");;
+  THRUSTFORCETTRIGGER1P2=steeringsettings.getInt("thrustforcetrigger1P2");
+  THRUSTFORCETTRIGGER2P2=steeringsettings.getInt("thrustforcetrigger2P2");
+
+  THRUSTFORCETTRIGGER3P2=steeringsettings.getInt("thrustforcetrigger3P2");
+
+  THRUSTFORCETTRIGGER4P2=steeringsettings.getInt("thrustforcetrigger4P2");
+
 
 
 
@@ -896,11 +951,24 @@ void loadSteeringSettings(NetAddress _myRemoteLocation) {
   myMessage.add(player2SteerCalibration); 
   oscP5.send(myMessage, _myRemoteLocation);
 
-  myMessage = new OscMessage("/4/multifader");
+  myMessage = new OscMessage("/4/multifader1");
   myMessage.add(THRUSTFORCETTRIGGER1); 
   myMessage.add(THRUSTFORCETTRIGGER2); 
   myMessage.add(THRUSTFORCETTRIGGER3); 
   myMessage.add(THRUSTFORCETTRIGGER4);
+  oscP5.send(myMessage, _myRemoteLocation);
+
+  myMessage = new OscMessage("/4/label97");
+  myMessage.add(THRUSTFORCETTRIGGER1); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/4/label99");
+  myMessage.add(THRUSTFORCETTRIGGER2); 
+  oscP5.send(myMessage, _myRemoteLocation);    
+  myMessage = new OscMessage("/4/label100");
+  myMessage.add(THRUSTFORCETTRIGGER3); 
+  oscP5.send(myMessage, _myRemoteLocation);    
+  myMessage = new OscMessage("/4/label101");
+  myMessage.add(THRUSTFORCETTRIGGER4); 
   oscP5.send(myMessage, _myRemoteLocation);
 
 
@@ -909,6 +977,20 @@ void loadSteeringSettings(NetAddress _myRemoteLocation) {
   myMessage.add(THRUSTFORCETTRIGGER2P2); 
   myMessage.add(THRUSTFORCETTRIGGER3P2); 
   myMessage.add(THRUSTFORCETTRIGGER4P2);
+  oscP5.send(myMessage, _myRemoteLocation);
+
+
+  myMessage = new OscMessage("/4/label102");
+  myMessage.add(THRUSTFORCETTRIGGER1P2); 
+  oscP5.send(myMessage, _myRemoteLocation);
+  myMessage = new OscMessage("/4/label103");
+  myMessage.add(THRUSTFORCETTRIGGER2P2); 
+  oscP5.send(myMessage, _myRemoteLocation);    
+  myMessage = new OscMessage("/4/label104");
+  myMessage.add(THRUSTFORCETTRIGGER3P2); 
+  oscP5.send(myMessage, _myRemoteLocation);    
+  myMessage = new OscMessage("/4/label105");
+  myMessage.add(THRUSTFORCETTRIGGER4P2); 
   oscP5.send(myMessage, _myRemoteLocation);
 }
 
@@ -1015,17 +1097,17 @@ void saveSteeringSettings() {
   parameters.setFloat("player2mapOutMax", player2mapOutMax);
   parameters.setFloat("player2SteerCalibration", player2SteerCalibration);
   parameters.setFloat("player2TrampolinCalibration", player2TrampolinCalibration);
-  
-  
-    parameters.setFloat("thrustforcetrigger1", THRUSTFORCETTRIGGER1);
-    parameters.setFloat("thrustforcetrigger2", THRUSTFORCETTRIGGER2);
-    parameters.setFloat("thrustforcetrigger3", THRUSTFORCETTRIGGER3);
-    parameters.setFloat("thrustforcetrigger4", THRUSTFORCETTRIGGER4);
-    
-     parameters.setFloat("thrustforcetrigger1P2", THRUSTFORCETTRIGGER1P2);
-    parameters.setFloat("thrustforcetrigger2P2", THRUSTFORCETTRIGGER2P2);
-    parameters.setFloat("thrustforcetrigger3P2", THRUSTFORCETTRIGGER3P2);
-    parameters.setFloat("thrustforcetrigger4P2", THRUSTFORCETTRIGGER4P2);
+
+
+  parameters.setFloat("thrustforcetrigger1", THRUSTFORCETTRIGGER1);
+  parameters.setFloat("thrustforcetrigger2", THRUSTFORCETTRIGGER2);
+  parameters.setFloat("thrustforcetrigger3", THRUSTFORCETTRIGGER3);
+  parameters.setFloat("thrustforcetrigger4", THRUSTFORCETTRIGGER4);
+
+  parameters.setFloat("thrustforcetrigger1P2", THRUSTFORCETTRIGGER1P2);
+  parameters.setFloat("thrustforcetrigger2P2", THRUSTFORCETTRIGGER2P2);
+  parameters.setFloat("thrustforcetrigger3P2", THRUSTFORCETTRIGGER3P2);
+  parameters.setFloat("thrustforcetrigger4P2", THRUSTFORCETTRIGGER4P2);
 
 
   saveJSONObject(parameters, "data/steeringsettings.json");

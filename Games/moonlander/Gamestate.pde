@@ -13,7 +13,7 @@ void changeGameState(int _state) {
   case PLAYING:
     ambisound.shiftGain(ambisound.getGain(), AMBIMAX, 1000);
     liftoff.rewind();
-    liftoff.setGain(5);
+    liftoff.setGain(-7);
     liftoff.play();
 
 
