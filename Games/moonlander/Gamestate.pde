@@ -7,10 +7,6 @@ void changeGameState(int _state) {
 
   case STARTSCREEN:
     ambisound.shiftGain(ambisound.getGain(), AMBIMAX, 1000);
-
-
-
-
     break;
 
 

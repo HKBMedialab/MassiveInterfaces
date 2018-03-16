@@ -1,6 +1,6 @@
 {
   "Damping": 1,
-  "Restitution": 1.2,
+  "Restitution": 1.2000000476837158,
   "Maxthrustforce": 8,
   "Maxspeed": 100,
   "Density": 0.25,

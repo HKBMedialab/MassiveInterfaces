@@ -168,7 +168,7 @@ void setup() {
 
   winPlayer1=loadImage("grafik/win_red.png");
   winPlayer2=loadImage("grafik/win_white.png");
-  
+
   frontType=loadImage("grafik/gameit_typo_2b.png");
 
   //------------------------- GAMEHANDLER ----------------------------------
@@ -248,10 +248,10 @@ void draw() {
     tramplinValuesPlayer1.append(player1Trampolinval);
     //val2=tempval;
     player1TrampolThrust=tempval;
-    
+
     val1=player1Trampolinval;
-    
-    
+
+
     if (player1TrampolThrust>THRUSTFORCETTRIGGER1) {
       player1.setThrust(true, int(getThrustForceLevel(player1TrampolThrust)));
     }
@@ -281,7 +281,7 @@ void draw() {
     if (tramplinValuesPlayer2.size()>3)tramplinValuesPlayer2.remove(0); // keep the list short...
   }
 
-val2=player2Trampolinval;
+  val2=player2Trampolinval;
   plattform.render();
 
   // -------------- Main Render Stuff  ----------
@@ -681,6 +681,24 @@ void oscEvent(OscMessage theOscMessage) {
     calibrateAllTrampolin();
   } else if (addr.equals("/3/calibrateSteering")) { 
     calibrateAllSteering();
+  } else if (addr.equals("/4/multifader1")) { 
+    float  val0  = theOscMessage.get(0).floatValue();
+    float  val1  = theOscMessage.get(1).floatValue();
+    float  val2  = theOscMessage.get(2).floatValue();
+    float  val3  = theOscMessage.get(3).floatValue();
+    THRUSTFORCETTRIGGER1=int(val0);
+    THRUSTFORCETTRIGGER2=int(val1);
+    THRUSTFORCETTRIGGER3=int(val2);
+    THRUSTFORCETTRIGGER4=int(val3);
+  } else if (addr.equals("/4/multifader2")) { 
+    float  val0  = theOscMessage.get(0).floatValue();
+    float  val1  = theOscMessage.get(1).floatValue();
+    float  val2  = theOscMessage.get(2).floatValue();
+    float  val3  = theOscMessage.get(3).floatValue();
+    THRUSTFORCETTRIGGER1P2=int(val0);
+    THRUSTFORCETTRIGGER2P2=int(val1);
+    THRUSTFORCETTRIGGER3P2=int(val2);
+    THRUSTFORCETTRIGGER4P2=int(val3);
   }
 }
 
@@ -781,6 +799,21 @@ void loadSteeringSettings(NetAddress _myRemoteLocation) {
 
 
 
+
+ THRUSTFORCETTRIGGER1=steeringsettings.getInt("thrustforcetrigger1");
+ THRUSTFORCETTRIGGER2=steeringsettings.getInt("thrustforcetrigger2");
+ THRUSTFORCETTRIGGER3=steeringsettings.getInt("thrustforcetrigger3");
+ THRUSTFORCETTRIGGER4=steeringsettings.getInt("thrustforcetrigger4");
+
+ THRUSTFORCETTRIGGER1P2=steeringsettings.getInt("thrustforcetrigger1P2");
+ THRUSTFORCETTRIGGER2P2=steeringsettings.getInt("thrustforcetrigger2P2");;
+ THRUSTFORCETTRIGGER3P2=steeringsettings.getInt("thrustforcetrigger3P2");;
+ THRUSTFORCETTRIGGER4P2=steeringsettings.getInt("thrustforcetrigger4P2");;
+
+
+
+
+
   OscMessage myMessage = new OscMessage("/2/player1mapInMin");
   myMessage.add(player1mapInMin); 
   oscP5.send(myMessage, _myRemoteLocation);
@@ -862,8 +895,74 @@ void loadSteeringSettings(NetAddress _myRemoteLocation) {
   myMessage = new OscMessage("/2/player2SteerCalibration");
   myMessage.add(player2SteerCalibration); 
   oscP5.send(myMessage, _myRemoteLocation);
+
+  myMessage = new OscMessage("/4/multifader");
+  myMessage.add(THRUSTFORCETTRIGGER1); 
+  myMessage.add(THRUSTFORCETTRIGGER2); 
+  myMessage.add(THRUSTFORCETTRIGGER3); 
+  myMessage.add(THRUSTFORCETTRIGGER4);
+  oscP5.send(myMessage, _myRemoteLocation);
+
+
+  myMessage = new OscMessage("/4/multifader2");
+  myMessage.add(THRUSTFORCETTRIGGER1P2); 
+  myMessage.add(THRUSTFORCETTRIGGER2P2); 
+  myMessage.add(THRUSTFORCETTRIGGER3P2); 
+  myMessage.add(THRUSTFORCETTRIGGER4P2);
+  oscP5.send(myMessage, _myRemoteLocation);
 }
 
+void loadWorldSettings() {
+  worldsettings = loadJSONObject("settings.json");
+
+  delay(20);
+  println("load world settings");
+
+  //world
+  GRAVITY = worldsettings.getFloat("Gravity");
+  RESTITUTION = worldsettings.getFloat("Restitution");
+  DAMPING = worldsettings.getFloat("Damping");
+
+  //vessel
+  DENSITY = worldsettings.getFloat("Density");
+  MAXSPEED = worldsettings.getFloat("Maxspeed");
+  IMPULSE = worldsettings.getFloat("Impulse");
+  MAXTHRUSTFORCE = worldsettings.getFloat("Maxthrustforce");
+
+  for (CustomShape cs : polygons) {
+    cs.setRestitution(RESTITUTION);
+  }
+}
+
+void loadSteeringSettings() {
+  println("load steering settings");
+
+  steeringsettings = loadJSONObject("steeringsettings.json");
+
+  delay(20);
+  //println("load steering settings");
+
+  player1leftTriggerVal=steeringsettings.getFloat("player1leftTriggerVal");
+  player1rightTriggerVal=steeringsettings.getFloat("player1rightTriggerVal");
+  player1mapInMin= steeringsettings.getFloat("player1mapInMin");
+  player1mapInMax=steeringsettings.getFloat("player1mapInMax");
+  player1mapOutMin =steeringsettings.getFloat("player1mapOutMin");
+  player1mapOutMax=steeringsettings.getFloat("player1mapOutMax");
+  player1SteerCalibration=steeringsettings.getFloat("player1SteerCalibration");
+
+  player1TrampolinCalibration=steeringsettings.getFloat("player1TrampolinCalibration");
+
+
+  player2leftTriggerVal=steeringsettings.getFloat("player2leftTriggerVal");
+  player2rightTriggerVal=steeringsettings.getFloat("player2rightTriggerVal");
+  player2mapInMin= steeringsettings.getFloat("player2mapInMin");
+  player2mapInMax=steeringsettings.getFloat("player2mapInMax");
+  player2mapOutMin =steeringsettings.getFloat("player2mapOutMin");
+  player2mapOutMax=steeringsettings.getFloat("player2mapOutMax");
+  player2SteerCalibration=steeringsettings.getFloat("player2SteerCalibration");
+
+  player2TrampolinCalibration=steeringsettings.getFloat("player2TrampolinCalibration");
+}
 
 
 void saveWorldSettings() {
@@ -916,6 +1015,18 @@ void saveSteeringSettings() {
   parameters.setFloat("player2mapOutMax", player2mapOutMax);
   parameters.setFloat("player2SteerCalibration", player2SteerCalibration);
   parameters.setFloat("player2TrampolinCalibration", player2TrampolinCalibration);
+  
+  
+    parameters.setFloat("thrustforcetrigger1", THRUSTFORCETTRIGGER1);
+    parameters.setFloat("thrustforcetrigger2", THRUSTFORCETTRIGGER2);
+    parameters.setFloat("thrustforcetrigger3", THRUSTFORCETTRIGGER3);
+    parameters.setFloat("thrustforcetrigger4", THRUSTFORCETTRIGGER4);
+    
+     parameters.setFloat("thrustforcetrigger1P2", THRUSTFORCETTRIGGER1P2);
+    parameters.setFloat("thrustforcetrigger2P2", THRUSTFORCETTRIGGER2P2);
+    parameters.setFloat("thrustforcetrigger3P2", THRUSTFORCETTRIGGER3P2);
+    parameters.setFloat("thrustforcetrigger4P2", THRUSTFORCETTRIGGER4P2);
+
 
   saveJSONObject(parameters, "data/steeringsettings.json");
 }

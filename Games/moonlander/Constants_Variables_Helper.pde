@@ -1,5 +1,8 @@
 //OSCADRESS
-String oscListenToAdress="147.87.39.19"; // ipad Adress
+//String oscListenToAdress="147.87.39.19"; // ipad Adress
+String oscListenToAdress="172.20.10.2"; // ipad Adress
+
+
 
 
 // WORLD
@@ -445,6 +448,13 @@ break;
   case 'l':
     player2.setRightThrust(true, SIDETHRUST);
     break;
+
+
+ case 'L':
+    loadWorldSettings();
+    loadSteeringSettings();  
+    break;
+
 
   case 't':
     // calibrateTrampoilnPlayer1();
