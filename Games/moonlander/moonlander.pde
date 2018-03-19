@@ -76,12 +76,13 @@ AudioSample shield;
 int gamestate;
 
 void setup() {
- // size(1920, 1080);
+  // size(1920, 1080);
   // size(1500, 1080);
   frameRate(30);
   // pixelDensity(2);
   fullScreen();
-  
+
+
   noCursor();
 
   //------------------------- INITS ----------------------------------
@@ -185,6 +186,11 @@ void setup() {
 
   player1Thrustbuffer= new FloatList();
   countdown.setup();
+
+
+
+  loadWorldSettings();
+  loadSteeringSettings();
 }
 
 void draw() {
@@ -620,6 +626,8 @@ void oscEvent(OscMessage theOscMessage) {
     oscP5.send(myMessage, myRemoteLocation);
   } else if (addr.equals("/2/player1leftTriggerVal")) { 
     player1leftTriggerVal = val;
+        println(val);
+
     OscMessage  myMessage = new OscMessage("/2/player1leftTriggerValLabel");
     myMessage.add(val);
     oscP5.send(myMessage, myRemoteLocation);
@@ -711,13 +719,7 @@ void oscEvent(OscMessage theOscMessage) {
     OscMessage  myMessage = new OscMessage("/4/label101");
     myMessage.add(THRUSTFORCETTRIGGER4); 
     oscP5.send(myMessage, myRemoteLocation);
-  
-
-} 
-
-
-
-else if (addr.equals("/4/multifader2/1")) { 
+  } else if (addr.equals("/4/multifader2/1")) { 
     float  val0  = theOscMessage.get(0).floatValue();
     THRUSTFORCETTRIGGER1P2=int(val0);    
     OscMessage  myMessage = new OscMessage("/4/label102");
@@ -741,17 +743,7 @@ else if (addr.equals("/4/multifader2/1")) {
     OscMessage  myMessage = new OscMessage("/4/label105");
     myMessage.add(THRUSTFORCETTRIGGER4P2); 
     oscP5.send(myMessage, myRemoteLocation);
-  
-
-}
-
-
-
-
-
-
-
-
+  }
 }
 
 void loadWorldSettings(NetAddress _myRemoteLocation) {

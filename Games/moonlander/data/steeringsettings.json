@@ -1,16 +1,16 @@
 {
-  "player1SteerCalibration": 9.119999885559082,
+  "player1SteerCalibration": 9.029999732971191,
   "player2mapOutMax": 100,
   "thrustforcetrigger1": 100,
   "thrustforcetrigger2": 150,
   "player1mapInMin": 0,
   "thrustforcetrigger3": 290,
   "thrustforcetrigger4": 500,
-  "player2rightTriggerVal": 2,
+  "player2rightTriggerVal": 2.0668318271636963,
   "player2TrampolinCalibration": 289,
   "player2mapInMin": 0,
   "player1mapOutMin": 0,
-  "player2leftTriggerVal": -2,
+  "player2leftTriggerVal": -2.1410892009735107,
   "player2mapOutMin": 0,
   "thrustforcetrigger2P2": 130,
   "thrustforcetrigger1P2": 80,
@@ -20,7 +20,7 @@
   "thrustforcetrigger3P2": 230,
   "player1mapInMax": 20,
   "player1mapOutMax": 5,
-  "player2SteerCalibration": 8.170000076293945,
+  "player2SteerCalibration": 8.1899995803833,
   "player1rightTriggerVal": 2,
   "player2mapInMax": 100
 }

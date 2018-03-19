@@ -1,6 +1,7 @@
 //OSCADRESS
 //String oscListenToAdress="147.87.39.19"; // ipad Adress
-String oscListenToAdress="172.20.10.2"; // ipad Adress
+//String oscListenToAdress="172.20.10.2"; // ipad Adress
+String oscListenToAdress="169.254.218.141"; // ipad Adress
 
 
 

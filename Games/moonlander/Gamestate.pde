@@ -20,6 +20,12 @@ void changeGameState(int _state) {
     break;
 
   case COUNTDOWN:
+  
+  
+    player1.reset();
+    player2.reset();
+   // changeGameState(COUNTDOWN);
+  
     countdown.startCountdown();
     countdownsound.rewind();
     countdownsound.play();
